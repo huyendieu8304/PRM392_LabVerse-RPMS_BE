@@ -1,7 +1,7 @@
 package com.prm392.be.labverse.controller;
 
+import com.prm392.be.labverse.dto.account.AccountSimpleResponse;
 import com.prm392.be.labverse.dto.account.RegisterAccountRequest;
-import com.prm392.be.labverse.entity.Account;
 import com.prm392.be.labverse.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -15,12 +15,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/accounts")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
+@Validated
 public class AccountController {
 
     AccountService accountService;
 
     @PostMapping("/register")
-    ResponseEntity<Account> register(@Valid @RequestBody RegisterAccountRequest request) {
+    ResponseEntity<AccountSimpleResponse> register(@Valid @RequestBody RegisterAccountRequest request) {
         return ResponseEntity.ok(accountService.createAccount(request));
     }
 
