@@ -13,7 +13,7 @@ public enum AccountErrorCode {
     //from 2001
     EMAIL_USED(2001, "The email has been already used by other account", HttpStatus.BAD_REQUEST),
     ROLE_NOT_EXIST_IN_DB(2002, "The role is currently not existing in database", HttpStatus.BAD_REQUEST),
-
+    ACCOUNT_NOT_FOUND(2003, "The account was not found", HttpStatus.NOT_FOUND),
     ;
 
     private final int code;

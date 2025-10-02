@@ -7,9 +7,9 @@ import org.springframework.http.HttpStatus;
 @Getter
 @Setter
 public class AppException extends RuntimeException{
-    private int code;
-    private String message;
-    private HttpStatus httpStatus;
+    private final int code;
+    private final String message;
+    private final HttpStatus httpStatus;
 
     public AppException(final int code, final String message, final HttpStatus httpStatus) {
         super(message);
@@ -19,6 +19,13 @@ public class AppException extends RuntimeException{
     }
 
     public AppException(AccountErrorCode error){
+        super(error.getMessage());
+        this.code = error.getCode();
+        this.message = error.getMessage();
+        this.httpStatus = error.getHttpStatus();
+    }
+
+    public AppException(AuthErrorCode error){
         super(error.getMessage());
         this.code = error.getCode();
         this.message = error.getMessage();

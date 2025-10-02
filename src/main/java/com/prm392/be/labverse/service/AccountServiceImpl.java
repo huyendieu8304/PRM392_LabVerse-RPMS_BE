@@ -49,4 +49,10 @@ public class AccountServiceImpl implements AccountService {
         return new AccountSimpleResponse(request.getEmail(), role.getName().name());
     }
 
+    @Override
+    public Account findAccountByEmail(String email) {
+        return accountRepository.findByEmail(email).orElseThrow(
+                () -> new AppException(AccountErrorCode.ACCOUNT_NOT_FOUND)
+        );
+    }
 }
