@@ -30,6 +30,21 @@ public class User {
     @JoinColumn(name = "role_id")
     Role role;
 
+    @Column(name = "full_name")
+    String fullName;
+
+    @Column(name = "gender")
+    boolean gender; //1(true): male 0(false):female
+
+    @Column(name = "address")
+    String address;
+
+    @Column(name = "phone_number")
+    String phoneNumber;
+
+    @Column(name = "delete_flag")
+    boolean deleteFlag = false;
+
     @CreationTimestamp
     LocalDateTime createdAt;
 
