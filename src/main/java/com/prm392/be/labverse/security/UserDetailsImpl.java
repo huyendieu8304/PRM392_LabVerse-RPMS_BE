@@ -1,7 +1,7 @@
 package com.prm392.be.labverse.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.prm392.be.labverse.entity.Account;
+import com.prm392.be.labverse.entity.User;
 import com.prm392.be.labverse.entity.Role;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -21,20 +21,20 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserDetailsImpl implements UserDetails {
 
-    Account account;
+    User user;
 
     @JsonIgnore
     private String password;
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public static UserDetailsImpl build(Account account) {
+    public static UserDetailsImpl build(User user) {
         //create custom Authority for User
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + account.getRole().getName()));
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
 
         return new UserDetailsImpl(
-                account,
-                account.getPassword(),
+                user,
+                user.getPassword(),
                 authorities);
     }
 
@@ -46,7 +46,7 @@ public class UserDetailsImpl implements UserDetails {
     //this actually return the email of the user
     @Override
     public String getUsername() {
-        return account.getEmail();
+        return user.getEmail();
     }
 
 
@@ -71,15 +71,15 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     public Role getRole(){
-        return account.getRole();
+        return user.getRole();
     }
 
     public String getAccountId(){
-        return account.getId();
+        return user.getId();
     }
 
     public String getEmail(){
-        return account.getEmail();
+        return user.getEmail();
     }
 
 }

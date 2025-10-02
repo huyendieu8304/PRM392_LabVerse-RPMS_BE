@@ -18,7 +18,7 @@ public class AppException extends RuntimeException{
         this.httpStatus = httpStatus;
     }
 
-    public AppException(AccountErrorCode error){
+    public AppException(UserErrorCode error){
         super(error.getMessage());
         this.code = error.getCode();
         this.message = error.getMessage();

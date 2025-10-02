@@ -1,13 +1,13 @@
 package com.prm392.be.labverse.service;
 
 import com.prm392.be.labverse.constant.ERole;
-import com.prm392.be.labverse.dto.account.AccountSimpleResponse;
+import com.prm392.be.labverse.dto.account.UserSimpleResponse;
 import com.prm392.be.labverse.dto.account.RegisterAccountRequest;
-import com.prm392.be.labverse.entity.Account;
+import com.prm392.be.labverse.entity.User;
 import com.prm392.be.labverse.entity.Role;
-import com.prm392.be.labverse.exception.AccountErrorCode;
+import com.prm392.be.labverse.exception.UserErrorCode;
 import com.prm392.be.labverse.exception.AppException;
-import com.prm392.be.labverse.repository.AccountRepository;
+import com.prm392.be.labverse.repository.UserRepository;
 import com.prm392.be.labverse.repository.RoleRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -20,39 +20,39 @@ import org.springframework.stereotype.Service;
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-public class AccountServiceImpl implements AccountService {
+public class UserServiceImpl implements UserService {
 
-    private static final Logger log = LoggerFactory.getLogger(AccountServiceImpl.class);
-    AccountRepository accountRepository;
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+    UserRepository userRepository;
     RoleRepository roleRepository;
 
     PasswordEncoder passwordEncoder;
 
 
     @Override
-    public AccountSimpleResponse createAccount(RegisterAccountRequest request) {
+    public UserSimpleResponse createUser(RegisterAccountRequest request) {
         //kiem tra emial da duoc dung chuwa
-        if ( accountRepository.findByEmail(request.getEmail().trim()).isPresent()) {
-            throw new AppException(AccountErrorCode.EMAIL_USED);
+        if ( userRepository.findByEmail(request.getEmail().trim()).isPresent()) {
+            throw new AppException(UserErrorCode.EMAIL_USED);
         }
 
         log.info("Create new account: {}", request);
 
         Role role = roleRepository.findByName(ERole.valueOf(request.getRoleName().trim().toUpperCase()))
-                .orElseThrow(() -> new AppException(AccountErrorCode.ROLE_NOT_EXIST_IN_DB));
+                .orElseThrow(() -> new AppException(UserErrorCode.ROLE_NOT_EXIST_IN_DB));
 
-        Account account = Account.builder()
+        User user = User.builder()
                 .email(request.getEmail().trim())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(role).build();
-        accountRepository.save(account);
-        return new AccountSimpleResponse(request.getEmail(), role.getName().name());
+        userRepository.save(user);
+        return new UserSimpleResponse(request.getEmail(), role.getName().name());
     }
 
     @Override
-    public Account findAccountByEmail(String email) {
-        return accountRepository.findByEmail(email).orElseThrow(
-                () -> new AppException(AccountErrorCode.ACCOUNT_NOT_FOUND)
+    public User findUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(
+                () -> new AppException(UserErrorCode.ACCOUNT_NOT_FOUND)
         );
     }
 }

@@ -1,8 +1,8 @@
 package com.prm392.be.labverse.security;
 
-import com.prm392.be.labverse.entity.Account;
+import com.prm392.be.labverse.entity.User;
 import com.prm392.be.labverse.exception.AuthErrorCode;
-import com.prm392.be.labverse.repository.AccountRepository;
+import com.prm392.be.labverse.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -17,14 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    AccountRepository accountRepository;
+    UserRepository userRepository;
 
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Account account = null;
+        User user;
         //get the account from the repository
-        account = accountRepository.findByEmail(email)
+        user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException(AuthErrorCode.ACCOUNT_NOT_EXIST.getMessage()));
 
 //        if (!account.isActive() || !account.isEmailVerified()) {
@@ -32,6 +32,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 //            throw new InternalAuthenticationServiceException(ErrorCode.ACCOUNT_IS_INACTIVE.getMessage());
 //        }
         //build UserDetails object
-        return UserDetailsImpl.build(account);
+        return UserDetailsImpl.build(user);
     }
 }
