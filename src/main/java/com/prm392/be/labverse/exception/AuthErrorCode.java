@@ -14,6 +14,7 @@ public enum AuthErrorCode {
     UNAUTHORIZED(4003, "The user doesn't have permission to access the endpoint.", HttpStatus.FORBIDDEN),
     INVALID_LOGIN_INFORMATION(4004, "Either email address or password is incorrect.", HttpStatus.UNAUTHORIZED),
     MISSING_ACCESS_TOKEN(4005, "Missing access token.", HttpStatus.UNAUTHORIZED),
+    INACTIVE_ACCOUNT(4006, "Inactive account", HttpStatus.FORBIDDEN),
 
     ;
 

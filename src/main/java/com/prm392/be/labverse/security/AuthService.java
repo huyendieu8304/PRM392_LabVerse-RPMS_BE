@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -33,6 +34,10 @@ public class AuthService {
             // mật khẩu hoặc email sai
             log.info("Login fail, invalid login information - email={}", request.email());
             throw new AppException(AuthErrorCode.INVALID_LOGIN_INFORMATION);
+         } catch (DisabledException e) {
+            // tài khỏan bị khóa/ inactive/ deleted (isEnable() = false
+            log.info("Login fail, inactive account - email={}", request.email());
+            throw new AppException(AuthErrorCode.INACTIVE_ACCOUNT);
         } catch (AuthenticationException e) {
             // các lỗi auth khác
             log.info("Login fail, a strange error occur during login");

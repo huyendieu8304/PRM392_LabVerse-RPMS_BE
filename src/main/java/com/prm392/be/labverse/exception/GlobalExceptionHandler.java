@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
         log.info("Exception is catch by appExceptionHandler, exception: {}", e.getMessage());
         return ResponseEntity
                 .status(e.getHttpStatus())
-                .body(e.getCode() + ":" + e.getMessage());
+                .body(e.getCode() + ": " + e.getMessage());
     }
 
     /**
