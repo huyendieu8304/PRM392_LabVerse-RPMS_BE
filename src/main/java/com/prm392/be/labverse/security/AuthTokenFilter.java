@@ -67,7 +67,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             //validate accessToken
             jwtUtil.validateJwtAccessToken(accessToken);
 
-//            //todo
+//            //todo: làm lại chỗ này sau khi làm logout
 //            //access token still valid -> check whether it invalidated (by logout or refresh)
 ////            if(tokenService.isAccessTokenInvalidated(accessToken)){
 ////                //access token is invalidated
@@ -76,6 +76,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 ////            }
 
 
+            //INFO: chỗ này đang tin tưởng hoàn toàn vào jwt mà ko check lại db
+            // trong trường hợp lỡ như tk bị delete đi rồi, mà tk vẫn còn hiệu lực thì nó vẫn qua được filter này
             String email = jwtUtil.getUserEmailFromAccessToken(accessToken);
             String authorities = jwtUtil.getUserRoleFromAccessToken(accessToken);
 
