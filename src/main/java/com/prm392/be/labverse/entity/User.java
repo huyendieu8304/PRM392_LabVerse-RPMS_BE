@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "users") // đổi tên bảng
+@Table(name = "users") // đổi tên bảng để không trùng với key word trong db
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

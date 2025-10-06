@@ -1,4 +1,4 @@
-package com.prm392.be.labverse.dto.account;
+package com.prm392.be.labverse.dto.user;
 
 public record UserSimpleResponse(
         String email,

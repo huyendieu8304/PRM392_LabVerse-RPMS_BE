@@ -1,7 +1,7 @@
 package com.prm392.be.labverse.controller;
 
-import com.prm392.be.labverse.dto.account.UserSimpleResponse;
-import com.prm392.be.labverse.dto.account.RegisterAccountRequest;
+import com.prm392.be.labverse.dto.user.UserSimpleResponse;
+import com.prm392.be.labverse.dto.user.RegisterAccountRequest;
 import com.prm392.be.labverse.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

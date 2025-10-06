@@ -1,4 +1,4 @@
-package com.prm392.be.labverse.dto.account;
+package com.prm392.be.labverse.dto.user;
 
 import com.prm392.be.labverse.validation.ValidRole;
 import jakarta.validation.constraints.Email;
