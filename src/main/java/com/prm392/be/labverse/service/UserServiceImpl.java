@@ -50,6 +50,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User findOrCreateUser(String email, String name, String roleName, String password) {
+        return userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    Role role = roleRepository.findByName(ERole.valueOf(roleName.toUpperCase()))
+                            .orElseThrow(() -> new AppException(UserErrorCode.ROLE_NOT_EXIST_IN_DB));
+                    User user = new User();
+                    user.setEmail(email);
+                    user.setFullName(name);
+                    user.setRole(role);
+                    user.setPassword(password);
+                    //todo xem lại sau khi làm upload file
+//                    user.setAvatar(pictureUrl);
+                    return userRepository.save(user);
+                });
+    }
+
+    @Override
     public User findUserByEmail(String email) {
         return userRepository.findByEmail(email).orElseThrow(
                 () -> new AppException(UserErrorCode.ACCOUNT_NOT_FOUND)

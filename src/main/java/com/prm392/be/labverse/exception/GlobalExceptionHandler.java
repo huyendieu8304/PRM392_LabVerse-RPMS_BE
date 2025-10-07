@@ -1,5 +1,6 @@
 package com.prm392.be.labverse.exception;
 
+import com.prm392.be.labverse.dto.ErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,11 +17,12 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(AppException.class)
-    ResponseEntity<String> appExceptionHandler(AppException e) {
+    ResponseEntity<ErrorResponse> appExceptionHandler(AppException e) {
         log.info("Exception is catch by appExceptionHandler, exception: {}", e.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(e.getCode(), e.getMessage());
         return ResponseEntity
                 .status(e.getHttpStatus())
-                .body(e.getCode() + ": " + e.getMessage());
+                .body(errorResponse);
     }
 
     /**
@@ -29,23 +31,27 @@ public class GlobalExceptionHandler {
      *
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
         log.info("Exception is catch by handleValidationException");
         Map<String, String> errors = new HashMap<>();
 
+        StringBuilder responseMessage = new StringBuilder();
         ex.getBindingResult()
                 .getFieldErrors()
                 .forEach(e -> {
                             try {
                                 ValidationErrorCode errorCode = ValidationErrorCode.valueOf(e.getDefaultMessage());
                                 errors.put(e.getField(), errorCode.getMessage());
+                                responseMessage.append(errorCode.getMessage()).append(", ");
                             } catch (IllegalArgumentException exception) { //the error code not existed
                                 log.error("Invalid error code");
                                 errors.put(e.getField(), "Invalid data input");
                             }
                         }
                 );
-        return ResponseEntity.badRequest().body(errors);
+
+        ErrorResponse errorResponse = new ErrorResponse(4000, responseMessage.toString());
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 
     /**
@@ -53,10 +59,11 @@ public class GlobalExceptionHandler {
      * validate method's parameters (request param, path variable, service layer)
      */
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException ex) {
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex) {
         log.info("Exception is caught by handleConstraintViolationException");
         Map<String, String> errors = new HashMap<>();
 
+        StringBuilder responseMessage = new StringBuilder();
         ex.getConstraintViolations().forEach(violation -> {
             try {
                 // Lấy error code trong message
@@ -70,6 +77,7 @@ public class GlobalExceptionHandler {
                 }
 
                 errors.put(field, errorCode.getMessage());
+                responseMessage.append(errorCode.getMessage()).append(", ");
             } catch (IllegalArgumentException exception) { // error code không tồn tại
                 log.error("Invalid error code");
                 String field = violation.getPropertyPath().toString();
@@ -80,7 +88,8 @@ public class GlobalExceptionHandler {
             }
         });
 
-        return ResponseEntity.badRequest().body(errors);
+        ErrorResponse errorResponse = new ErrorResponse(4000,responseMessage.toString());
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 
 }
