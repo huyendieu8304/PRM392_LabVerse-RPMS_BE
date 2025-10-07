@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 @Component
@@ -98,14 +100,15 @@ public class JwtUtil {
                 .getSubject();
     }
 
-    public Instant getExpirationAtFromAccessToken(String accessToken) {
-        return Jwts.parser()
+    public LocalDateTime getExpirationFromToken(String accessToken) {
+        Instant expInstant = Jwts.parser()
                 .verifyWith(getSecretKey(accessTokenSecretKey))
                 .build()
                 .parseSignedClaims(accessToken)
                 .getPayload()
                 .getExpiration()
                 .toInstant();
+        return LocalDateTime.ofInstant(expInstant, ZoneId.systemDefault());
     }
     public String getUserRoleFromAccessToken(String accessToken) {
         return Jwts.parser()

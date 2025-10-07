@@ -33,4 +33,16 @@ public class AuthController {
         return ResponseEntity.ok().body(authService.loginWGoogle(request));
     }
 
+    @PostMapping("/logout")
+    public String logout(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        authService.logout(token);
+        return "Logged out successfully";
+    }
+
+//    @GetMapping("/test")
+//    public String checkAuth(@RequestHeader("Authorization") String authHeader) {
+//        String token = authHeader.replace("Bearer ", "");
+//            return token;
+//    }
 }

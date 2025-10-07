@@ -4,6 +4,7 @@ import com.prm392.be.labverse.config.ApiEndpoint;
 import com.prm392.be.labverse.dto.ErrorResponse;
 import com.prm392.be.labverse.exception.AppException;
 import com.prm392.be.labverse.exception.AuthErrorCode;
+import com.prm392.be.labverse.repository.InvalidatedTokenRepository;
 import com.prm392.be.labverse.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -34,6 +35,8 @@ import java.util.Arrays;
 @Slf4j
 public class AuthTokenFilter extends OncePerRequestFilter {
     JwtUtil jwtUtil;
+    private final InvalidatedTokenRepository invalidatedTokenRepository;
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -67,13 +70,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             //validate accessToken
             jwtUtil.validateJwtAccessToken(accessToken);
 
-//            //todo: làm lại chỗ này sau khi làm logout
-//            //access token still valid -> check whether it invalidated (by logout or refresh)
-////            if(tokenService.isAccessTokenInvalidated(accessToken)){
-////                //access token is invalidated
-////                log.info("The access token is invalidated, {}", accessToken);
-////                throw new AppException(ErrorCode.UNAUTHENTICATED);
-////            }
+            // check nếu token đã bị logout (invalidate)
+            if (invalidatedTokenRepository.findByAccessToken(accessToken).isPresent()) {
+                throw new AppException(AuthErrorCode.ACCESS_TOKEN_EXPIRED_OR_INVALIDATED);
+            }
 
 
             //INFO: chỗ này đang tin tưởng hoàn toàn vào jwt mà ko check lại db

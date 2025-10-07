@@ -8,9 +8,10 @@ import com.prm392.be.labverse.constant.ERole;
 import com.prm392.be.labverse.dto.auth.LoginRequest;
 import com.prm392.be.labverse.dto.auth.LoginResponse;
 import com.prm392.be.labverse.dto.auth.LoginWGoogleRequest;
-import com.prm392.be.labverse.entity.User;
+import com.prm392.be.labverse.entity.InvalidatedToken;
 import com.prm392.be.labverse.exception.AppException;
 import com.prm392.be.labverse.exception.AuthErrorCode;
+import com.prm392.be.labverse.repository.InvalidatedTokenRepository;
 import com.prm392.be.labverse.service.UserService;
 import com.prm392.be.labverse.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +26,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 @Service
@@ -39,6 +42,8 @@ public class AuthService {
     private final JwtUtil jwtUtil;
 
     private final UserService userService;
+    private final InvalidatedTokenRepository invalidatedTokenRepository;
+
 
     @Value("${application.client-id}")
     private String WEB_CLIENT_ID;
@@ -132,6 +137,17 @@ public class AuthService {
             sb.append(CHARACTERS.charAt(index));
         }
         return sb.toString();
+    }
+
+    @Transactional
+    public void logout(String accessToken) {
+        LocalDateTime expiredAt = jwtUtil.getExpirationFromToken(accessToken);
+
+        // Lưu vào danh sách token bị vô hiệu hóa
+        InvalidatedToken token = new InvalidatedToken();
+        token.setAccessToken(accessToken);
+        token.setExpiredAt(expiredAt);
+        invalidatedTokenRepository.save(token);
     }
 
 }

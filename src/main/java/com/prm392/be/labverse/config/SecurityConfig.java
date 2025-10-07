@@ -1,5 +1,6 @@
 package com.prm392.be.labverse.config;
 
+import com.prm392.be.labverse.constant.ERole;
 import com.prm392.be.labverse.security.AuthEntryPointJwt;
 import com.prm392.be.labverse.security.AuthTokenFilter;
 import com.prm392.be.labverse.security.CustomAccessDeniedHandler;

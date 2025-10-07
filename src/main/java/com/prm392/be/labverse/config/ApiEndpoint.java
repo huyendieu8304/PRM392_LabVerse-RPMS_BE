@@ -15,6 +15,7 @@ public class ApiEndpoint {
             "/api/accounts/register",
             "/api/auth/login",
             "/api/auth/google",
+            "/api/auth/logout",
 
     };
 
