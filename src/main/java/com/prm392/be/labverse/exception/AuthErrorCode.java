@@ -21,7 +21,6 @@ public enum AuthErrorCode {
     GG_LOGIN_CANT_VERIFY_TOKEN(4010, "Can not verifying Google token.", HttpStatus.UNAUTHORIZED),
     ACCESS_TOKEN_EXPIRED_OR_INVALIDATED(4011, "Access token expired or invalidated.", HttpStatus.UNAUTHORIZED),
 
-    SERVER_ERROR(5000, "Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
     ;
 
     private final int code;

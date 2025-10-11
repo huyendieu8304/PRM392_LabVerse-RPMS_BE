@@ -11,6 +11,7 @@ import com.prm392.be.labverse.dto.auth.LoginWGoogleRequest;
 import com.prm392.be.labverse.entity.InvalidatedToken;
 import com.prm392.be.labverse.exception.AppException;
 import com.prm392.be.labverse.exception.AuthErrorCode;
+import com.prm392.be.labverse.exception.CommonErrorCode;
 import com.prm392.be.labverse.repository.InvalidatedTokenRepository;
 import com.prm392.be.labverse.service.UserService;
 import com.prm392.be.labverse.util.JwtUtil;
@@ -69,7 +70,7 @@ public class AuthService {
             // các lỗi auth khác
             log.info("Login fail, a strange error occur during login");
             log.error(e.getMessage());
-            throw new AppException(AuthErrorCode.SERVER_ERROR);
+            throw new AppException(CommonErrorCode.SERVER_ERROR);
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -126,7 +127,7 @@ public class AuthService {
         } catch (Exception e) {
             e.printStackTrace();
             log.info("server error");
-            throw new AppException(AuthErrorCode.SERVER_ERROR);
+            throw new AppException(CommonErrorCode.SERVER_ERROR);
         }
     }
 
