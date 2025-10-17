@@ -44,14 +44,15 @@ public class JwtUtil {
      * ==================================================================================
      * Generate jwt
      */
-    public String generateAccessToken(String userEmail, String userRole) {
-        return generateJwtToken(userEmail, userRole, accessTokenSecretKey, accessTokenExpiration);
+    public String generateAccessToken(String userEmail, String userRole, String userId) {
+        return generateJwtToken(userEmail, userRole, userId, accessTokenSecretKey, accessTokenExpiration);
     }
 
-    private String generateJwtToken(String email, String userRole, String secretKey, long expiration) {
+    private String generateJwtToken(String email, String userRole, String userId, String secretKey, long expiration) {
         return Jwts.builder()
                 .subject(email)
                 .claim("role", userRole)
+                .claim("id", userId)
                 .issuer(domainName)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration)) //set expiration date for token
@@ -117,6 +118,15 @@ public class JwtUtil {
                 .parseSignedClaims(accessToken)
                 .getPayload()
                 .get("role")
+                .toString();
+    }
+    public String getUserIdFromAccessToken(String accessToken) {
+        return Jwts.parser()
+                .verifyWith(getSecretKey(accessTokenSecretKey))
+                .build()
+                .parseSignedClaims(accessToken)
+                .getPayload()
+                .get("id")
                 .toString();
     }
 }

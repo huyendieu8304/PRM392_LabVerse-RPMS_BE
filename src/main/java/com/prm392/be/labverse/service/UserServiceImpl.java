@@ -60,7 +60,7 @@ public class UserServiceImpl implements UserService {
                     user.setFullName(name);
                     user.setRole(role);
                     user.setPassword(password);
-                    //todo xem lại sau khi làm upload file
+                    //thôi, kệ để người dùng tự sửa avatar sau
 //                    user.setAvatar(pictureUrl);
                     return userRepository.save(user);
                 });

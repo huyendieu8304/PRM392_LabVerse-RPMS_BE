@@ -9,4 +9,7 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
     Optional<User> findByEmail(String email);
+
+    /** tìm tài khoản theo user id mà vẫn còn active     */
+    Optional<User> findByIdAndDeleteFlagFalse(String id);
 }

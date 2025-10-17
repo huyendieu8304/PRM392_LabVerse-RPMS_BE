@@ -8,14 +8,15 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -27,7 +28,7 @@ import java.util.Random;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Slf4j
-public class FileStorageUtil {
+public class FileStorageHelper {
     S3Client s3Client;
     S3Presigner s3Presigner;
 
@@ -36,8 +37,16 @@ public class FileStorageUtil {
     String bucketName;
 
     private static final String PREFIX_PAPER = "/paper/";
+    private static final String PREFIX_ANNOTATION= "/annotation/";
     private static final String PREFIX_AVATAR = "/avatar/";
     private Random random = new Random();
+
+
+    public String generateUploadPaperUrl(String key){
+        //tạm thời liều, để client tự định nghĩa key
+        // String key = userId + PREFIX_PAPER + fileName;
+        return generateUploadFileUrl(key, MediaType.APPLICATION_PDF_VALUE);
+    }
 
     /**
      *
@@ -45,38 +54,33 @@ public class FileStorageUtil {
      * @param userId the userId of the user who upload the file
      * @return a String which is uri to save to the database
      */
-    public String uploadPaper(MultipartFile file, String userId) {
-        //timestamp hiện tại (theo millis)
-        long timestamp = System.currentTimeMillis();
-        //3 ký tự random để tránh trùng khi upload cùng millis
-        int randomInt = random.nextInt(50);  // returns pseudo-random value between 0 and 50
-        String key = userId + PREFIX_PAPER + timestamp+ "_" + randomInt + "_" + getFileName(file);
+    public String uploadAvatar(MultipartFile file, String userId) {
+        String key = userId + PREFIX_AVATAR + getFileName(file);
         uploadFile(file, key);
-        //todo choox nafy vaan synchronous, cos the lau
         return key;
     }
-
 
     /**
      * Uploads a file to the specified S3 bucket with the given key.
      *
      * @param file   the file to be uploaded (as MultipartFile)
-     * @param key    the  key (path/filename) under which the file will be stored in the S3 bucket
+     * @param s3Key    the  key (path/filename) under which the file will be stored in the S3 bucket
      * @return true if successfully upload file
      * @throws AppException if there is an error during the file upload process
      */
-    private void uploadFile(MultipartFile file, String key) {
+    private void uploadFile(MultipartFile file, String s3Key) {
+        //todo choox nafy vaan synchronous, cos the lau
         //upload object to s3
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
-                    .key(key)
+                    .key(s3Key)
                     .contentType(file.getContentType())
                     .build();
             s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
-            log.info("Upload file {} to S3 successful", key);
+            log.info("Upload file {} to S3 successful", s3Key);
         } catch (IOException e) {
-            log.info("Upload file {} to S3 failed", key);
+            log.info("Upload file {} to S3 failed", s3Key);
             throw new AppException(CommonErrorCode.UPLOAD_OBJECT_TO_S3_FAIL);
         }
     }
@@ -85,25 +89,30 @@ public class FileStorageUtil {
      * Generates a presigned URL for accessing a file stored in the S3 bucket.
      * This URL is temporary and valid for 30 minutes.
      *
-     * @param uri the key (path/filename) of the file stored in the S3 bucket
+     * @param s3Key the key (path/filename) of the file stored in the S3 bucket
      * @return the presigned URL as a String
      */
-    public String getFileUrl(String uri) {
-        String fileName = extractFileName(uri);
+    public String generateDownloadFileUrl(String s3Key) {
+        String fileName = extractFileName(s3Key);
         String encodedName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
 
+        //chuẩn bị thông tin cần presign
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
-                .key(uri)
+                .key(s3Key)
                 //ép trình duyệt tải file với tên gốc
                 .responseContentDisposition("attachment; filename=\"" + encodedName + "\"")
                 .build();
 
+        //gói thông tin cần presign vào presign request
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(Duration.ofMinutes(30)) //allow this url to be access in 30
+//                .signatureDuration(Duration.ofMinutes(30)) //allow this url to be access in 30
+                //todo
+                .signatureDuration(Duration.ofMinutes(60)) //allow this url to be access in 30
                 .getObjectRequest(getObjectRequest)
                 .build();
-        log.info("Get url of the file with the key={} successful", uri);
+        log.info("Get url of the file with the key={} successful", s3Key);
+        //tạo link đã kí và lấy url thực tế
         return s3Presigner.presignGetObject(presignRequest).url().toString();
     }
 
@@ -143,4 +152,17 @@ public class FileStorageUtil {
         return originalFileName;
     }
 
+    private String generateUploadFileUrl(String s3Key, String contentType) {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(s3Key)
+                .contentType(contentType)
+                .build();
+        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                .putObjectRequest(putObjectRequest)
+                .signatureDuration(Duration.ofMinutes(10)) //mo link cho upload trong 10 phuts
+                .build();
+
+        return s3Presigner.presignPutObject(presignRequest).url().toString();
+    }
 }

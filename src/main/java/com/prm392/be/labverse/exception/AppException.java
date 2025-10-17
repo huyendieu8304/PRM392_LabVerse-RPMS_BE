@@ -39,4 +39,11 @@ public class AppException extends RuntimeException{
         this.httpStatus = error.getHttpStatus();
     }
 
+    public String getRootCauseMessage() {
+        if (getCause() != null) {
+            return "Root cause: " + getCause().getMessage();
+        }
+        return message;
+    }
+
 }

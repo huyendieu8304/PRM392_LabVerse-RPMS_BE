@@ -19,6 +19,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AppException.class)
     ResponseEntity<ErrorResponse> appExceptionHandler(AppException e) {
         log.info("Exception is catch by appExceptionHandler, exception: {}", e.getMessage());
+        log.info(e.getRootCauseMessage());
         ErrorResponse errorResponse = new ErrorResponse(e.getCode(), e.getMessage());
         return ResponseEntity
                 .status(e.getHttpStatus())
@@ -33,6 +34,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
         log.info("Exception is catch by handleValidationException");
+        log.info(ex.getMessage());
+
         Map<String, String> errors = new HashMap<>();
 
         StringBuilder responseMessage = new StringBuilder();
@@ -44,7 +47,7 @@ public class GlobalExceptionHandler {
                                 errors.put(e.getField(), errorCode.getMessage());
                                 responseMessage.append(errorCode.getMessage()).append(", ");
                             } catch (IllegalArgumentException exception) { //the error code not existed
-                                log.error("Invalid error code");
+                                log.error("Invalid error code: {}", exception.getMessage());
                                 errors.put(e.getField(), "Invalid data input");
                             }
                         }
@@ -61,6 +64,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex) {
         log.info("Exception is caught by handleConstraintViolationException");
+        log.info(ex.getMessage());
+
         Map<String, String> errors = new HashMap<>();
 
         StringBuilder responseMessage = new StringBuilder();

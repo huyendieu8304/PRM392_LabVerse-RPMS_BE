@@ -9,6 +9,7 @@ import com.prm392.be.labverse.dto.auth.LoginRequest;
 import com.prm392.be.labverse.dto.auth.LoginResponse;
 import com.prm392.be.labverse.dto.auth.LoginWGoogleRequest;
 import com.prm392.be.labverse.entity.InvalidatedToken;
+import com.prm392.be.labverse.entity.User;
 import com.prm392.be.labverse.exception.AppException;
 import com.prm392.be.labverse.exception.AuthErrorCode;
 import com.prm392.be.labverse.exception.CommonErrorCode;
@@ -79,8 +80,9 @@ public class AuthService {
         String userRole = userDetails.getRole().getName().toString();
 
         // login success
-        String accessTk = jwtUtil.generateAccessToken(request.email(), userRole);
-        return new LoginResponse(accessTk);
+        String userId = userDetails.getUserId();
+        String accessTk = jwtUtil.generateAccessToken(request.email(), userRole, userId);
+        return new LoginResponse(accessTk, userId);
     }
 
     public LoginResponse loginWGoogle(LoginWGoogleRequest request) {
@@ -104,17 +106,16 @@ public class AuthService {
 
             String email = payload.getEmail();
             String name = (String) payload.get("name");
-            //todo khi nào làm upload file thì xem lại
-//                String pictureUrl = (String) payload.get("picture");
+
             //todo tạm thời fix cứng role
             String roleName = ERole.INTERN.name();
             String defaultPassword = generateRandomString(8); //random rồi, khỏi mã hóa
             // Lưu hoặc đăng nhập người dùng
-            userService.findOrCreateUser(email, name, roleName, defaultPassword);
+            User user = userService.findOrCreateUser(email, name, roleName, defaultPassword);
 
             //login successful
             //generate access token
-            return new LoginResponse(jwtUtil.generateAccessToken(email, roleName));
+            return new LoginResponse(jwtUtil.generateAccessToken(email, roleName, user.getId()), user.getId());
 
         } catch (IOException e) {
             //khi có lỗi trong quá trình đọc hoặc phân tích (parse) nội dung idTokenString.

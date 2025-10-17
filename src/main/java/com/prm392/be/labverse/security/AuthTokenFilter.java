@@ -79,12 +79,21 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             //INFO: chỗ này đang tin tưởng hoàn toàn vào jwt mà ko check lại db
             // trong trường hợp lỡ như tk bị delete đi rồi, mà tk vẫn còn hiệu lực thì nó vẫn qua được filter này
             String email = jwtUtil.getUserEmailFromAccessToken(accessToken);
-            String authorities = jwtUtil.getUserRoleFromAccessToken(accessToken);
+            String roles = jwtUtil.getUserRoleFromAccessToken(accessToken);
+            String userId = jwtUtil.getUserIdFromAccessToken(accessToken);
 
-            log.info("Authorities: {}", authorities);
+            log.info("Authorities: {}", roles);
+
+            CurrentUserInfo info = new CurrentUserInfo();
+            info.setEmail(email);
+            info.setRoles(roles);
+            info.setUserId(userId);
 
             Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    email, null, AuthorityUtils.commaSeparatedStringToAuthorityList(authorities));
+                    info,
+                    null,
+                    AuthorityUtils.commaSeparatedStringToAuthorityList(roles)
+            );
             SecurityContextHolder.getContext().setAuthentication(authentication);
             log.info("Authenticate user successfully! email: {}", email);
         } catch (Exception e) {
