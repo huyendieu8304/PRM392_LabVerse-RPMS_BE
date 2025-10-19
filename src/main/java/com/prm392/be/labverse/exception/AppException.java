@@ -11,11 +11,11 @@ public class AppException extends RuntimeException{
     private final String message;
     private final HttpStatus httpStatus;
 
-    public AppException(final int code, final String message, final HttpStatus httpStatus) {
-        super(message);
-        this.code = code;
-        this.message = message;
-        this.httpStatus = httpStatus;
+    public String getRootCauseMessage() {
+        if (getCause() != null) {
+            return "Root cause: " + getCause().getMessage();
+        }
+        return message;
     }
 
     public AppException(UserErrorCode error){
@@ -39,11 +39,20 @@ public class AppException extends RuntimeException{
         this.httpStatus = error.getHttpStatus();
     }
 
-    public String getRootCauseMessage() {
-        if (getCause() != null) {
-            return "Root cause: " + getCause().getMessage();
-        }
-        return message;
+    public AppException(PaperErrorCode error){
+        super(error.getMessage());
+        this.code = error.getCode();
+        this.message = error.getMessage();
+        this.httpStatus = error.getHttpStatus();
     }
+
+    public AppException(PaperAnnotationErrorCode error) {
+        super(error.getMessage());
+        this.code = error.getCode();
+        this.message = error.getMessage();
+        this.httpStatus = error.getHttpStatus();
+    }
+
+
 
 }

@@ -3,6 +3,7 @@ package com.prm392.be.labverse.controller;
 import com.prm392.be.labverse.dto.S3SignedUrlResponse;
 import com.prm392.be.labverse.dto.paper.AddPaperRequest;
 import com.prm392.be.labverse.dto.paper.AddPaperResponse;
+import com.prm392.be.labverse.dto.paper.PaperInfoResponse;
 import com.prm392.be.labverse.service.PaperService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
@@ -35,5 +36,10 @@ public class PaperController {
     @GetMapping("/downloadUrl")
     public ResponseEntity<S3SignedUrlResponse> getDownloadUrl(@RequestParam("key") String s3key){
         return ResponseEntity.ok(paperService.getDownloadUrl(s3key));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PaperInfoResponse> getPaperInfo(@PathVariable String id){
+        return ResponseEntity.ok(paperService.getPaperInfo(id));
     }
 }

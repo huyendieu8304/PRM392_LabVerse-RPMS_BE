@@ -20,7 +20,7 @@ public enum AuthErrorCode {
     GG_LOGIN_CANT_PARSE_TOKEN(4009, "Can not read token or key of Google.", HttpStatus.UNAUTHORIZED),
     GG_LOGIN_CANT_VERIFY_TOKEN(4010, "Can not verifying Google token.", HttpStatus.UNAUTHORIZED),
     ACCESS_TOKEN_EXPIRED_OR_INVALIDATED(4011, "Access token expired or invalidated.", HttpStatus.UNAUTHORIZED),
-
+    UNAUTHORIZED_REQUEST(4012, "The user doesn't have permission to perform operation.", HttpStatus.UNAUTHORIZED),
     ;
 
     private final int code;

@@ -48,6 +48,9 @@ public class FileStorageHelper {
         return generateUploadFileUrl(key, MediaType.APPLICATION_PDF_VALUE);
     }
 
+    public String generateUploadAnnotationUrl(String key){
+        return generateUploadFileUrl(key, MediaType.APPLICATION_JSON_VALUE);
+    }
     /**
      *
      * @param file the file which would be uploaded
@@ -117,7 +120,7 @@ public class FileStorageHelper {
     }
 
     /**
-     * Extract the file name from key path
+     * Extract the file name from url path
      */
     private String extractFileName(String key) {
         if (key == null || key.isEmpty()) return "file";
