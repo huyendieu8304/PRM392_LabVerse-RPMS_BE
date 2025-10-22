@@ -4,6 +4,7 @@ import lombok.*;
 
 @NoArgsConstructor
 @Setter
+@Getter
 public class PaperInfoResponse{
 
     private String id;
