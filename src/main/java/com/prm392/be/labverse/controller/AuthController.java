@@ -4,6 +4,7 @@ import com.prm392.be.labverse.dto.auth.LoginRequest;
 import com.prm392.be.labverse.dto.auth.LoginResponse;
 import com.prm392.be.labverse.dto.auth.LoginWGoogleRequest;
 import com.prm392.be.labverse.security.AuthService;
+import com.prm392.be.labverse.util.CurrentUserInfoUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
