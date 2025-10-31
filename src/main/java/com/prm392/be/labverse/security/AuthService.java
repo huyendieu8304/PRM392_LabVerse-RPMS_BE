@@ -15,6 +15,7 @@ import com.prm392.be.labverse.exception.AuthErrorCode;
 import com.prm392.be.labverse.exception.CommonErrorCode;
 import com.prm392.be.labverse.repository.InvalidatedTokenRepository;
 import com.prm392.be.labverse.service.UserService;
+import com.prm392.be.labverse.util.CurrentUserInfoUtil;
 import com.prm392.be.labverse.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
