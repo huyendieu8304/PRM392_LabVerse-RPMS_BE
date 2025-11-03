@@ -132,6 +132,19 @@
 			<version>2.30.20</version>
 		</dependency>
 
+        <!-- Mail (Jakarta) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- Config processor (để @ConfigurationProperties có code hint) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
 		<!-- Cache storage -->
 		<dependency>
 			<groupId>com.github.ben-manes.caffeine</groupId>
