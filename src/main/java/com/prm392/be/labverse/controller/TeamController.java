@@ -1,9 +1,11 @@
 package com.prm392.be.labverse.controller;
 
+import com.prm392.be.labverse.dto.team.MemberResponse;
 import com.prm392.be.labverse.dto.team.TeamRequest;
 import com.prm392.be.labverse.dto.team.TeamResponse;
 import com.prm392.be.labverse.service.TeamService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,7 +23,7 @@ public class TeamController {
     }
 
     @GetMapping("/{teamId}/members")
-    public Object getMembersByTeam(@PathVariable String teamId) {
+    public List<MemberResponse> getMembersByTeam(@PathVariable String teamId) {
         return teamService.getMembersByTeamId(teamId);
     }
 
@@ -30,8 +32,16 @@ public class TeamController {
         return teamService.createTeam(teamRequest);
     }
 
-    @DeleteMapping("delete/{teamId}")
-    public void deleteTeam(@PathVariable String teamId) {
+    @DeleteMapping("/delete/{teamId}")
+    public ResponseEntity<String> deleteTeam(@PathVariable String teamId) {
         teamService.deleteTeam(teamId);
+        return ResponseEntity.ok("Team deleted successfully");
     }
+
+    @DeleteMapping("/{teamId}/members/{memberId}")
+    public ResponseEntity<String> removeTeamMember( @PathVariable String teamId, @PathVariable String memberId) {
+        teamService.removeTeamMember(teamId, memberId);
+        return ResponseEntity.ok("Member removed successfully");
+    }
+
 }

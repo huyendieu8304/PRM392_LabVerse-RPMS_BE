@@ -10,4 +10,5 @@ public interface TeamService {
     List<MemberResponse> getMembersByTeamId(String teamId);
     TeamResponse createTeam(TeamRequest request);
     void deleteTeam(String teamId);
+    void removeTeamMember(String teamId, String memberId);
 }

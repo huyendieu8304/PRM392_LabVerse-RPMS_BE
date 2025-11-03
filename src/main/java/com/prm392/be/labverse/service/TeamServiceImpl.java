@@ -101,4 +101,26 @@ public class TeamServiceImpl implements TeamService {
         membershipRepository.deleteByTeam_Id(teamId);
         teamRepository.delete(team);
     }
+
+    @Override
+    @Transactional
+    public void removeTeamMember(String teamId, String memberId) {
+        String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new RuntimeException("No authenticated user found");
+        }
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new RuntimeException("Team not found with id: " + teamId));
+        if (!team.getCreatedBy().getId().equals(currentUserId)) {
+            throw new RuntimeException("You don't have permission to remove members from this team");
+        }
+        if (memberId.equals(currentUserId)) {
+            throw new RuntimeException("Cannot remove this member");
+        }
+        Membership membership = membershipRepository.findByTeam_IdAndUserId_Id(teamId, memberId)
+                .orElseThrow(() -> new RuntimeException("Member not found in this team"));
+
+        // Xóa member
+        membershipRepository.delete(membership);
+    }
 }
