@@ -38,9 +38,17 @@ public class AuthController {
         return "Logged out successfully";
     }
 
-//    @GetMapping("/test")
-//    public String checkAuth(@RequestHeader("Authorization") String authHeader) {
-//        String token = authHeader.replace("Bearer ", "");
-//            return token;
-//    }
+
+    @PostMapping("/forgot-pass")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+        authService.forgotPassword(email);
+        return ResponseEntity.ok("OTP sent to the email.");
+    }
+
+    //todo tachs request ra
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String otp, @RequestParam String newPassword) {
+        authService.resetPassword(email, otp, newPassword);
+        return ResponseEntity.ok("Reset password successfully.");
+    }
 }

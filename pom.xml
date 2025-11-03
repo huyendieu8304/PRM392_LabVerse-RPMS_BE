@@ -131,6 +131,12 @@
 			<artifactId>s3</artifactId>
 			<version>2.30.20</version>
 		</dependency>
+
+		<!-- Cache storage -->
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -14,8 +14,10 @@ import com.prm392.be.labverse.exception.AppException;
 import com.prm392.be.labverse.exception.AuthErrorCode;
 import com.prm392.be.labverse.exception.CommonErrorCode;
 import com.prm392.be.labverse.repository.InvalidatedTokenRepository;
+import com.prm392.be.labverse.repository.UserRepository;
 import com.prm392.be.labverse.service.UserService;
 import com.prm392.be.labverse.util.JwtUtil;
+import com.prm392.be.labverse.util.OtpUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,10 +45,13 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final OtpUtil otpUtil;
 
     private final UserService userService;
     private final InvalidatedTokenRepository invalidatedTokenRepository;
+    private final UserRepository userRepository;
 
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${application.client-id}")
     private String WEB_CLIENT_ID;
@@ -150,6 +156,26 @@ public class AuthService {
         token.setAccessToken(accessToken);
         token.setExpiredAt(expiredAt);
         invalidatedTokenRepository.save(token);
+    }
+
+    public void forgotPassword(String email){
+        //kiem tra email co duoc su dung cho tk nao dang active khong
+        userRepository.findByEmailAndDeleteFlagFalse(email)
+                .orElseThrow(() -> new AppException(AuthErrorCode.INACTIVE_ACCOUNT));
+
+        String otp = otpUtil.generateOtp(email);
+        //todo send email di
+//        emailService.sendOtpMail(email, otp);
+    }
+
+    public void resetPassword(String email, String otp, String newPassword){
+        if (!otpUtil.validateOtp(email, otp)){
+            throw new AppException(AuthErrorCode.INVALID_OTP);
+        }
+        User user = userRepository.findByEmailAndDeleteFlagFalse(email)
+                .orElseThrow(() -> new AppException(AuthErrorCode.INACTIVE_ACCOUNT));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 
 }
