@@ -5,11 +5,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class TeamRequest {
+@NoArgsConstructor
+@AllArgsConstructor
+public class TeamReadingListResponse {
+    private String teamId;
     private String name;
     private String description;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

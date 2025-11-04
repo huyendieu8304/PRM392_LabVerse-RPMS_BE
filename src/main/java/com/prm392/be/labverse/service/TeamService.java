@@ -1,8 +1,7 @@
 package com.prm392.be.labverse.service;
 
-import com.prm392.be.labverse.dto.team.MemberResponse;
-import com.prm392.be.labverse.dto.team.TeamRequest;
-import com.prm392.be.labverse.dto.team.TeamResponse;
+import com.prm392.be.labverse.dto.team.*;
+
 import java.util.List;
 
 public interface TeamService {
@@ -11,4 +10,9 @@ public interface TeamService {
     TeamResponse createTeam(TeamRequest request);
     void deleteTeam(String teamId);
     void removeTeamMember(String teamId, String memberId);
+    List<TeamReadingListResponse> getTeamReadingListsByTeamId(String teamId);
+    TeamReadingListResponse getTeamReadingListById(String teamId, String readingListId);
+    TeamReadingListResponse createTeamReadingList(String teamId, TeamReadingListRequest request);
+    TeamReadingListResponse updateTeamReadingList(String teamId, String readingListId, TeamReadingListRequest request);
+    void deleteTeamReadingList(String teamId, String readingListId);
 }
