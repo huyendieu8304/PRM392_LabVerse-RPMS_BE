@@ -8,6 +8,7 @@ import com.prm392.be.labverse.constant.ERole;
 import com.prm392.be.labverse.dto.auth.LoginRequest;
 import com.prm392.be.labverse.dto.auth.LoginResponse;
 import com.prm392.be.labverse.dto.auth.LoginWGoogleRequest;
+import com.prm392.be.labverse.dto.auth.VerifyForgotPasswordOtpResponse;
 import com.prm392.be.labverse.entity.InvalidatedToken;
 import com.prm392.be.labverse.entity.User;
 import com.prm392.be.labverse.exception.AppException;
@@ -15,6 +16,7 @@ import com.prm392.be.labverse.exception.AuthErrorCode;
 import com.prm392.be.labverse.exception.CommonErrorCode;
 import com.prm392.be.labverse.repository.InvalidatedTokenRepository;
 import com.prm392.be.labverse.repository.UserRepository;
+import com.prm392.be.labverse.service.MailService;
 import com.prm392.be.labverse.service.UserService;
 import com.prm392.be.labverse.util.JwtUtil;
 import com.prm392.be.labverse.util.OtpUtil;
@@ -52,6 +54,7 @@ public class AuthService {
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
 
     @Value("${application.client-id}")
     private String WEB_CLIENT_ID;
@@ -162,13 +165,21 @@ public class AuthService {
         //kiem tra email co duoc su dung cho tk nao dang active khong
         userRepository.findByEmailAndDeleteFlagFalse(email)
                 .orElseThrow(() -> new AppException(AuthErrorCode.INACTIVE_ACCOUNT));
-
+        //generate otp
         String otp = otpUtil.generateOtp(email);
-        //todo send email di
-//        emailService.sendOtpMail(email, otp);
+        //send email to user's email
+        mailService.sendForgotPasswordOTP(email, otp);
+    }
+
+    public VerifyForgotPasswordOtpResponse verifyResetPasswordOtp(String email, String otp){
+        if (!otpUtil.validateOtp(email, otp)){
+            throw new AppException(AuthErrorCode.INVALID_OTP);
+        }
+        return new VerifyForgotPasswordOtpResponse(otpUtil.generateOtp(email));
     }
 
     public void resetPassword(String email, String otp, String newPassword){
+        //đúng ra nên tạo 1 token riêng mới đúng, mà cho tiết kiệm thì tạo luôn giống otp cho nhanh
         if (!otpUtil.validateOtp(email, otp)){
             throw new AppException(AuthErrorCode.INVALID_OTP);
         }
@@ -177,5 +188,4 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
-
 }

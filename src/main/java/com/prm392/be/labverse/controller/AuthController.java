@@ -3,6 +3,7 @@ package com.prm392.be.labverse.controller;
 import com.prm392.be.labverse.dto.auth.LoginRequest;
 import com.prm392.be.labverse.dto.auth.LoginResponse;
 import com.prm392.be.labverse.dto.auth.LoginWGoogleRequest;
+import com.prm392.be.labverse.dto.auth.VerifyForgotPasswordOtpResponse;
 import com.prm392.be.labverse.security.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,16 +40,20 @@ public class AuthController {
     }
 
 
-    @PostMapping("/forgot-pass")
+    @GetMapping("/forgot-pass")
     public ResponseEntity<String> forgotPassword(@RequestParam String email) {
         authService.forgotPassword(email);
         return ResponseEntity.ok("OTP sent to the email.");
     }
 
-    //todo tachs request ra
-    @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String otp, @RequestParam String newPassword) {
-        authService.resetPassword(email, otp, newPassword);
+    @PostMapping("/verify-reset-password-otp")
+    public ResponseEntity<VerifyForgotPasswordOtpResponse> verifyResetPasswordOtp(@RequestParam String email, @RequestParam String otp) {
+        return ResponseEntity.ok(authService.verifyResetPasswordOtp(email, otp));
+    }
+
+    @PutMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String resetPasswordToken, @RequestParam String newPassword) {
+        authService.resetPassword(email, resetPasswordToken, newPassword);
         return ResponseEntity.ok("Reset password successfully.");
     }
 }
