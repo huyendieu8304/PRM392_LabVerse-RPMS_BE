@@ -6,6 +6,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.lang.Nullable;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -36,7 +37,7 @@ MailServiceImpl implements com.prm392.be.labverse.service.MailService {
     @Override
     public void sendRegisterOTP(String email, String otp, Locale locale) {
         String lang = normalize(locale);
-        String subject = lang.equals("en") ? "Verify your account" : "Mã xác nhận đăng ký tài khoản";
+        String subject = lang.equals("en") ? "[Lab Verse] Verify your account" : "[Lab Verse] Mã xác nhận đăng ký tài khoản";
         String heading = lang.equals("en") ? "Account registration" : "Đăng ký tài khoản";
         String html = buildOtpHtml(heading, otp, lang);
         send(email, subject, html);
@@ -45,7 +46,7 @@ MailServiceImpl implements com.prm392.be.labverse.service.MailService {
     @Override
     public void sendForgotPasswordOTP(String email, String otp, Locale locale) {
         String lang = normalize(locale);
-        String subject = lang.equals("en") ? "Password reset code" : "Mã xác thực quên mật khẩu";
+        String subject = lang.equals("en") ? "[Lab Verse] Password reset code" : "[Lab Verse] Mã xác thực quên mật khẩu";
         String heading = lang.equals("en") ? "Password reset" : "Khôi phục mật khẩu";
         String html = buildOtpHtml(heading, otp, lang);
         send(email, subject, html);
@@ -68,6 +69,10 @@ MailServiceImpl implements com.prm392.be.labverse.service.MailService {
             if (props.getReplyTo() != null && !props.getReplyTo().isBlank()) {
                 helper.setReplyTo(props.getReplyTo());
             }
+
+            ClassPathResource logo = new ClassPathResource("email/logo_labverse.png");
+            helper.addInline("logo", logo, "image/png");
+
             mailSender.send(mime);
         } catch (MessagingException e) {
             log.error("Failed to send email to {}: {}", to, e.getMessage(), e);
@@ -155,7 +160,7 @@ MailServiceImpl implements com.prm392.be.labverse.service.MailService {
                 heading, brand,
                 (logo == null || logo.isBlank())
                         ? "<span style='width:26px;height:26px;border-radius:8px;background:"+color+";display:inline-block'></span>"
-                        : "<img src='"+logo+"' alt='"+brand+"' style='height:26px'>",
+                        : "<img src='cid:logo' alt='"+brand+"' style='height:26px'>",
                 brand,
                 heading,
                 intro,
