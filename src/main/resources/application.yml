@@ -1,0 +1,18 @@
+spring:
+  mail:
+    host: smtp.gmail.com          # thay theo SMTP bạn dùng
+    port: 587
+    username: labverse.app@gmail.com
+    password: ${MAIL_APP_PASSWORD}  # App Password
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+mailing:
+  from: "LabVerse <labverse.app@gmail.com>"
+  reply-to: "LabVerse Support <support@labverse.vn>"   # tuỳ chọn
+  brand:
+    name: "LabVerse"
+    logo-url: "https://drive.google.com/file/d/1mdaMI0rT8UJzRmDLAYdWrG9wWx4Axv4E/view?usp=sharing"  # link ảnh logo
+    primary-color: "#16a34a"                    # xanh lá
+  default-locale: "vi"                          # vi | en

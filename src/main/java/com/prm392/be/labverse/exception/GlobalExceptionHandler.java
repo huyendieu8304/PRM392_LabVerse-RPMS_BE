@@ -1,0 +1,100 @@
+package com.prm392.be.labverse.exception;
+
+import com.prm392.be.labverse.dto.ErrorResponse;
+import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(AppException.class)
+    ResponseEntity<ErrorResponse> appExceptionHandler(AppException e) {
+        log.info("Exception is catch by appExceptionHandler, exception: {}", e.getMessage());
+        log.info(e.getRootCauseMessage());
+        ErrorResponse errorResponse = new ErrorResponse(e.getCode(), e.getMessage());
+        return ResponseEntity
+                .status(e.getHttpStatus())
+                .body(errorResponse);
+    }
+
+    /**
+     * for fail validation, object/DTO validation
+     * when using @Valid @Validate in DTO(request body)
+     *
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+        log.info("Exception is catch by handleValidationException");
+        log.info(ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+
+        StringBuilder responseMessage = new StringBuilder();
+        ex.getBindingResult()
+                .getFieldErrors()
+                .forEach(e -> {
+                            try {
+                                ValidationErrorCode errorCode = ValidationErrorCode.valueOf(e.getDefaultMessage());
+                                errors.put(e.getField(), errorCode.getMessage());
+                                responseMessage.append(errorCode.getMessage()).append(", ");
+                            } catch (IllegalArgumentException exception) { //the error code not existed
+                                log.error("Invalid error code: {}", exception.getMessage());
+                                errors.put(e.getField(), "Invalid data input");
+                            }
+                        }
+                );
+
+        ErrorResponse errorResponse = new ErrorResponse(4000, responseMessage.toString());
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+    /**
+     * for fail validation, method-level validation
+     * validate method's parameters (request param, path variable, service layer)
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException ex) {
+        log.info("Exception is caught by handleConstraintViolationException");
+        log.info(ex.getMessage());
+
+        Map<String, String> errors = new HashMap<>();
+
+        StringBuilder responseMessage = new StringBuilder();
+        ex.getConstraintViolations().forEach(violation -> {
+            try {
+                // Lấy error code trong message
+                ValidationErrorCode errorCode = ValidationErrorCode.valueOf(violation.getMessage());
+
+                // Lấy tên field từ propertyPath (vd: "registerAccountRequest.email")
+                String field = violation.getPropertyPath().toString();
+                // Nếu muốn chỉ lấy tên cuối cùng (vd: "email")
+                if (field.contains(".")) {
+                    field = field.substring(field.lastIndexOf('.') + 1);
+                }
+
+                errors.put(field, errorCode.getMessage());
+                responseMessage.append(errorCode.getMessage()).append(", ");
+            } catch (IllegalArgumentException exception) { // error code không tồn tại
+                log.error("Invalid error code");
+                String field = violation.getPropertyPath().toString();
+                if (field.contains(".")) {
+                    field = field.substring(field.lastIndexOf('.') + 1);
+                }
+                errors.put(field, "Invalid data input");
+            }
+        });
+
+        ErrorResponse errorResponse = new ErrorResponse(4000,responseMessage.toString());
+        return ResponseEntity.badRequest().body(errorResponse);
+    }
+
+}
