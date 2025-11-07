@@ -20,8 +20,9 @@ public class ApiEndpoint {
             "/api/auth/google",
             "/api/auth/logout",
             "/api/auth/forgot-pass",
-            "/api/auth/verify-reset-password-otp",
+            "/api/auth/verify-forgot-password-otp",
             "/api/auth/reset-password",
+            "/api/auth/resent-forgot-password-otp",
 
     };
 

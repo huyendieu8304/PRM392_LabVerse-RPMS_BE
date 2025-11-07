@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class OtpUtil {
     private static final String FORGOT_PASS_KEY_PREFIX = "pass_";
+    private static final String RESET_PASS_KEY_PREFIX = "reset_";
     private static final String VERIFY_ACC_KEY_PREFIX = "acc_";
 
     private final Cache<String, String> otpCache = Caffeine.newBuilder()
@@ -17,6 +18,9 @@ public class OtpUtil {
             .maximumSize(10000)
             .build();
 
+    /**
+     * forgot pass OTP
+     */
     public String generateForgotPassOtp(String email) {
         String key = FORGOT_PASS_KEY_PREFIX + normalize(email);
         return generateOtp(key);
@@ -33,6 +37,9 @@ public class OtpUtil {
     }
 
 
+    /**
+     * verify account OTP
+     */
     public String generateVerifyAccOtp(String email) {
         String key = VERIFY_ACC_KEY_PREFIX + normalize(email);
         return generateOtp(key);
@@ -48,6 +55,23 @@ public class OtpUtil {
         return regenerateOtp(key);
     }
 
+    /**
+     * reset pass OTP
+     */
+    public String generateResetPassOtp(String email) {
+        String key = RESET_PASS_KEY_PREFIX + normalize(email);
+        return generateOtp(key);
+    }
+
+    public boolean isValidResetPassOtp(String email, String otp) {
+        String key = RESET_PASS_KEY_PREFIX + normalize(email);
+        return isOtpValid(key, otp);
+    }
+
+
+    /**
+     * PRIVATE FUNCTIONS
+     */
     private String regenerateOtp(String key) {
         String cached = otpCache.getIfPresent(key);
         if (cached != null) {

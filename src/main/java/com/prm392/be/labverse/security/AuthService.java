@@ -175,20 +175,32 @@ public class AuthService {
     }
 
     public VerifyForgotPasswordOtpResponse verifyResetPasswordOtp(String email, String otp){
-        if (otpUtil.isValidForgotPassOtp(email, otp)){
+        if (!otpUtil.isValidForgotPassOtp(email, otp)){
             throw new AppException(AuthErrorCode.INVALID_OTP);
         }
-        return new VerifyForgotPasswordOtpResponse(otpUtil.generateForgotPassOtp(email));
+
+        String resetPassToken = otpUtil.generateResetPassOtp(email);
+
+        return new VerifyForgotPasswordOtpResponse(resetPassToken);
     }
 
-    public void resetPassword(String email, String otp, String newPassword){
-        //đúng ra nên tạo 1 token riêng mới đúng, mà cho tiết kiệm thì tạo luôn giống otp cho nhanh
-        if (otpUtil.isValidForgotPassOtp(email, otp)){
+    public void resetPassword(String email, String resetPassToken, String newPassword){
+        if (!otpUtil.isValidResetPassOtp(email, resetPassToken)){
             throw new AppException(AuthErrorCode.INVALID_OTP);
         }
         User user = userRepository.findByEmailAndDeleteFlagFalse(email)
                 .orElseThrow(() -> new AppException(AuthErrorCode.INACTIVE_ACCOUNT));
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+    }
+
+    public void resentForgotPasswordOtp(String email) {
+        //kiem tra email co duoc su dung cho tk nao dang active khong
+        userRepository.findByEmailAndDeleteFlagFalse(email)
+                .orElseThrow(() -> new AppException(AuthErrorCode.INACTIVE_ACCOUNT));
+        //regenerate otp
+        String otp = otpUtil.regenerateForgotPassOtp(email);
+        //send email to user's email
+        mailService.sendForgotPasswordOTP(email, otp);
     }
 }

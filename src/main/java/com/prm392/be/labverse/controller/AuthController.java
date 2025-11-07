@@ -5,7 +5,6 @@ import com.prm392.be.labverse.dto.auth.LoginResponse;
 import com.prm392.be.labverse.dto.auth.LoginWGoogleRequest;
 import com.prm392.be.labverse.dto.auth.VerifyForgotPasswordOtpResponse;
 import com.prm392.be.labverse.security.AuthService;
-import com.prm392.be.labverse.util.CurrentUserInfoUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -47,8 +46,8 @@ public class AuthController {
         return ResponseEntity.ok("OTP sent to the email.");
     }
 
-    @PostMapping("/verify-reset-password-otp")
-    public ResponseEntity<VerifyForgotPasswordOtpResponse> verifyResetPasswordOtp(@RequestParam String email, @RequestParam String otp) {
+    @PostMapping("/verify-forgot-password-otp")
+    public ResponseEntity<VerifyForgotPasswordOtpResponse> verifyForgotPasswordOtp(@RequestParam String email, @RequestParam String otp) {
         return ResponseEntity.ok(authService.verifyResetPasswordOtp(email, otp));
     }
 
@@ -56,5 +55,11 @@ public class AuthController {
     public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String resetPasswordToken, @RequestParam String newPassword) {
         authService.resetPassword(email, resetPasswordToken, newPassword);
         return ResponseEntity.ok("Reset password successfully.");
+    }
+
+    @GetMapping("/resent-forgot-password-otp")
+    ResponseEntity<String> resent(@RequestParam String email){
+        authService.resentForgotPasswordOtp(email);
+        return ResponseEntity.ok("Resent forgot password OTP successfully");
     }
 }
