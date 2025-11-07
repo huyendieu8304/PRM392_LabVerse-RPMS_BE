@@ -4,7 +4,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.prm392.be.labverse.constant.ERole;
 import com.prm392.be.labverse.dto.auth.LoginRequest;
 import com.prm392.be.labverse.dto.auth.LoginResponse;
 import com.prm392.be.labverse.dto.auth.LoginWGoogleRequest;
@@ -18,7 +17,6 @@ import com.prm392.be.labverse.repository.InvalidatedTokenRepository;
 import com.prm392.be.labverse.repository.UserRepository;
 import com.prm392.be.labverse.service.MailService;
 import com.prm392.be.labverse.service.UserService;
-import com.prm392.be.labverse.util.CurrentUserInfoUtil;
 import com.prm392.be.labverse.util.JwtUtil;
 import com.prm392.be.labverse.util.OtpUtil;
 import lombok.RequiredArgsConstructor;
@@ -171,21 +169,21 @@ public class AuthService {
         userRepository.findByEmailAndDeleteFlagFalse(email)
                 .orElseThrow(() -> new AppException(AuthErrorCode.INACTIVE_ACCOUNT));
         //generate otp
-        String otp = otpUtil.generateOtp(email);
+        String otp = otpUtil.generateForgotPassOtp(email);
         //send email to user's email
         mailService.sendForgotPasswordOTP(email, otp);
     }
 
     public VerifyForgotPasswordOtpResponse verifyResetPasswordOtp(String email, String otp){
-        if (!otpUtil.validateOtp(email, otp)){
+        if (otpUtil.isValidForgotPassOtp(email, otp)){
             throw new AppException(AuthErrorCode.INVALID_OTP);
         }
-        return new VerifyForgotPasswordOtpResponse(otpUtil.generateOtp(email));
+        return new VerifyForgotPasswordOtpResponse(otpUtil.generateForgotPassOtp(email));
     }
 
     public void resetPassword(String email, String otp, String newPassword){
         //đúng ra nên tạo 1 token riêng mới đúng, mà cho tiết kiệm thì tạo luôn giống otp cho nhanh
-        if (!otpUtil.validateOtp(email, otp)){
+        if (otpUtil.isValidForgotPassOtp(email, otp)){
             throw new AppException(AuthErrorCode.INVALID_OTP);
         }
         User user = userRepository.findByEmailAndDeleteFlagFalse(email)

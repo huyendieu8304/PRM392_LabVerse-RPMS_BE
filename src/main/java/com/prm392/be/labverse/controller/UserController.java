@@ -27,4 +27,15 @@ public class UserController {
         return ResponseEntity.ok(userService.createUser(request));
     }
 
+    @GetMapping("/resent-otp-verify-account")
+    ResponseEntity<String> resentOtpVerifyAccount(@RequestParam String email){
+        userService.resentOtpVerifyAccount(email);
+        return ResponseEntity.ok("Resent OTP verify account successfully");
+    }
+
+    @PutMapping("/verify-account")
+    ResponseEntity<String> verifyAccount(@RequestParam String email, @RequestParam String otp){
+        userService.verifyAccount(email, otp);
+        return ResponseEntity.ok("Verify account successfully");
+    }
 }
