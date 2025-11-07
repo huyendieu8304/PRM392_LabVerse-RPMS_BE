@@ -78,12 +78,14 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         assert authentication != null;
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        String userRole = userDetails.getRole().getName().toString();
+        String userRole = userDetails.getRole() != null && userDetails.getRole().getName()!=null
+                ? userDetails.getRole().getName().toString()
+                : null;
 
         // login success
         String userId = userDetails.getUserId();
         String accessTk = jwtUtil.generateAccessToken(request.email(), userRole, userId);
-        return new LoginResponse(accessTk, userId);
+        return new LoginResponse(accessTk, userId, userRole);
     }
 
     public LoginResponse loginWGoogle(LoginWGoogleRequest request) {
@@ -108,15 +110,17 @@ public class AuthService {
             String email = payload.getEmail();
             String name = (String) payload.get("name");
 
-            //todo tạm thời fix cứng role
-            String roleName = ERole.INTERN.name();
             String defaultPassword = generateRandomString(8); //random rồi, khỏi mã hóa
             // Lưu hoặc đăng nhập người dùng
-            User user = userService.findOrCreateUser(email, name, roleName, defaultPassword);
+            User user = userService.findOrCreateUser(email, name, defaultPassword);
 
+            String roleName = user.getRole() != null && user.getRole().getName() != null
+                    ? user.getRole().getName().name()
+                    : null;
             //login successful
             //generate access token
-            return new LoginResponse(jwtUtil.generateAccessToken(email, roleName, user.getId()), user.getId());
+            String accessToken = jwtUtil.generateAccessToken(email, roleName, user.getId());
+            return new LoginResponse(accessToken, user.getId(), roleName);
 
         } catch (IOException e) {
             //khi có lỗi trong quá trình đọc hoặc phân tích (parse) nội dung idTokenString.

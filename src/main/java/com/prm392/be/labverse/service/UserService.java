@@ -8,7 +8,7 @@ public interface UserService {
 
     UserSimpleResponse createUser(RegisterAccountRequest request);
 
-    User findOrCreateUser(String email, String name, String roleName, String password);
+    User findOrCreateUser(String email, String name, String password);
 
     User findUserByEmail(String email);
 }
