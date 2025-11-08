@@ -16,6 +16,7 @@ public class ApiEndpoint {
             "/api/accounts/resent-otp-verify-account",
             "/api/accounts/verify-account",
             "/api/accounts/register",
+            "/api/accounts/select-role",
             "/api/auth/login",
             "/api/auth/google",
             "/api/auth/logout",

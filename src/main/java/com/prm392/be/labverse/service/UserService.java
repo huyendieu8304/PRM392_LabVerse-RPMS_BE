@@ -15,4 +15,6 @@ public interface UserService {
     void resentOtpVerifyAccount(String email);
 
     void verifyAccount(String email, String otp);
+
+    UserSimpleResponse selectRole(String userId, String roleName);
 }

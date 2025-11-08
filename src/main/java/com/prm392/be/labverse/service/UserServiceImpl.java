@@ -42,9 +42,6 @@ public class UserServiceImpl implements UserService {
 
         log.info("Create new account: {}", request);
 
-//        Role role = roleRepository.findByName(ERole.valueOf(request.getRoleName().trim().toUpperCase()))
-//                .orElseThrow(() -> new AppException(UserErrorCode.ROLE_NOT_EXIST_IN_DB));
-
         String email = request.getEmail().trim();
         User user = User.builder()
                 .email(email)
@@ -116,5 +113,25 @@ public class UserServiceImpl implements UserService {
         // OTP hợp lệ -> kích hoạt tài khoản
         user.setDeleteFlag(false);
         userRepository.save(user);
+    }
+
+    @Override
+    public UserSimpleResponse selectRole(String userId, String roleName) {
+
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new AppException(UserErrorCode.ACCOUNT_NOT_FOUND)
+        );
+
+        //khong cho set lai role
+        if (user.getRole() != null){
+            throw new AppException(UserErrorCode.USER_ROLE_ALREADY_SET);
+        }
+
+        Role role = roleRepository.findByName(ERole.valueOf(roleName.trim().toUpperCase()))
+                .orElseThrow(() -> new AppException(UserErrorCode.ROLE_NOT_EXIST_IN_DB));
+        user.setRole(role);
+        userRepository.save(user);
+
+        return new UserSimpleResponse(user.getEmail(), user.getRole().getName().name());
     }
 }

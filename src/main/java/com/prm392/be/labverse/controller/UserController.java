@@ -3,6 +3,7 @@ package com.prm392.be.labverse.controller;
 import com.prm392.be.labverse.dto.user.UserSimpleResponse;
 import com.prm392.be.labverse.dto.user.RegisterAccountRequest;
 import com.prm392.be.labverse.service.UserService;
+import com.prm392.be.labverse.validation.ValidRole;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -37,5 +38,10 @@ public class UserController {
     ResponseEntity<String> verifyAccount(@RequestParam String email, @RequestParam String otp){
         userService.verifyAccount(email, otp);
         return ResponseEntity.ok("Verify account successfully");
+    }
+
+    @PutMapping("/select-role")
+    ResponseEntity<UserSimpleResponse> selectRole(@RequestParam String userId, @RequestParam @ValidRole String roleName){
+        return ResponseEntity.ok(userService.selectRole(userId, roleName));
     }
 }
