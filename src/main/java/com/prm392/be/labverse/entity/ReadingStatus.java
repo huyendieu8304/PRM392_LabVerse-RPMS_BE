@@ -7,6 +7,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_id", "paper_id"})
+        },
+        indexes = {
+                @Index(name = "idx_user_paper", columnList = "user_id, paper_id")
+        }
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
