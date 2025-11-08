@@ -11,4 +11,10 @@ public interface UserService {
     User findOrCreateUser(String email, String name, String password);
 
     User findUserByEmail(String email);
+
+    void resentOtpVerifyAccount(String email);
+
+    void verifyAccount(String email, String otp);
+
+    UserSimpleResponse selectRole(String userId, String roleName);
 }

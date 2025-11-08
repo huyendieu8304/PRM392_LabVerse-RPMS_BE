@@ -12,4 +12,5 @@ public interface UserRepository extends JpaRepository<User, String> {
 
     /** tìm tài khoản theo user id mà vẫn còn active     */
     Optional<User> findByIdAndDeleteFlagFalse(String id);
+    Optional<User> findByEmailAndDeleteFlagFalse(String email);
 }

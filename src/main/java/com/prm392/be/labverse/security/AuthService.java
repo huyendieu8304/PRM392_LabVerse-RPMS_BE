@@ -4,19 +4,21 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
-import com.prm392.be.labverse.constant.ERole;
 import com.prm392.be.labverse.dto.auth.LoginRequest;
 import com.prm392.be.labverse.dto.auth.LoginResponse;
 import com.prm392.be.labverse.dto.auth.LoginWGoogleRequest;
+import com.prm392.be.labverse.dto.auth.VerifyForgotPasswordOtpResponse;
 import com.prm392.be.labverse.entity.InvalidatedToken;
 import com.prm392.be.labverse.entity.User;
 import com.prm392.be.labverse.exception.AppException;
 import com.prm392.be.labverse.exception.AuthErrorCode;
 import com.prm392.be.labverse.exception.CommonErrorCode;
 import com.prm392.be.labverse.repository.InvalidatedTokenRepository;
+import com.prm392.be.labverse.repository.UserRepository;
+import com.prm392.be.labverse.service.MailService;
 import com.prm392.be.labverse.service.UserService;
-import com.prm392.be.labverse.util.CurrentUserInfoUtil;
 import com.prm392.be.labverse.util.JwtUtil;
+import com.prm392.be.labverse.util.OtpUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +30,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,10 +46,14 @@ public class AuthService {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final OtpUtil otpUtil;
 
     private final UserService userService;
     private final InvalidatedTokenRepository invalidatedTokenRepository;
+    private final UserRepository userRepository;
 
+    private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
 
     @Value("${application.client-id}")
     private String WEB_CLIENT_ID;
@@ -157,4 +164,43 @@ public class AuthService {
         invalidatedTokenRepository.save(token);
     }
 
+    public void forgotPassword(String email){
+        //kiem tra email co duoc su dung cho tk nao dang active khong
+        userRepository.findByEmailAndDeleteFlagFalse(email)
+                .orElseThrow(() -> new AppException(AuthErrorCode.INACTIVE_ACCOUNT));
+        //generate otp
+        String otp = otpUtil.generateForgotPassOtp(email);
+        //send email to user's email
+        mailService.sendForgotPasswordOTP(email, otp);
+    }
+
+    public VerifyForgotPasswordOtpResponse verifyResetPasswordOtp(String email, String otp){
+        if (!otpUtil.isValidForgotPassOtp(email, otp)){
+            throw new AppException(AuthErrorCode.INVALID_OTP);
+        }
+
+        String resetPassToken = otpUtil.generateResetPassOtp(email);
+
+        return new VerifyForgotPasswordOtpResponse(resetPassToken);
+    }
+
+    public void resetPassword(String email, String resetPassToken, String newPassword){
+        if (!otpUtil.isValidResetPassOtp(email, resetPassToken)){
+            throw new AppException(AuthErrorCode.INVALID_OTP);
+        }
+        User user = userRepository.findByEmailAndDeleteFlagFalse(email)
+                .orElseThrow(() -> new AppException(AuthErrorCode.INACTIVE_ACCOUNT));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
+    public void resentForgotPasswordOtp(String email) {
+        //kiem tra email co duoc su dung cho tk nao dang active khong
+        userRepository.findByEmailAndDeleteFlagFalse(email)
+                .orElseThrow(() -> new AppException(AuthErrorCode.INACTIVE_ACCOUNT));
+        //regenerate otp
+        String otp = otpUtil.regenerateForgotPassOtp(email);
+        //send email to user's email
+        mailService.sendForgotPasswordOTP(email, otp);
+    }
 }
