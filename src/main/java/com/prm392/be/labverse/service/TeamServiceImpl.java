@@ -293,6 +293,7 @@ public class TeamServiceImpl implements TeamService {
 
     private TeamReadingListResponse mapToTeamReadingListResponse(TeamReadingList teamReadingList) {
         return TeamReadingListResponse.builder()
+                .id(teamReadingList.getId())
                 .teamId(teamReadingList.getTeam().getId())
                 .name(teamReadingList.getName())
                 .description(teamReadingList.getDescription())
