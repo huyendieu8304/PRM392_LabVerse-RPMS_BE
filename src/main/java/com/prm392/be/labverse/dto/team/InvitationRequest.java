@@ -6,11 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
-public class TeamRequest {
-    private String id;
-    private String name;
-    private String description;
+@NoArgsConstructor
+@AllArgsConstructor
+public class InvitationRequest {
+    private String teamId;
+    private String email;
 }

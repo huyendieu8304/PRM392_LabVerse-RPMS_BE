@@ -8,4 +8,7 @@ public interface MailService {
 
     void sendRegisterOTP(String email, String otp, Locale locale);     // ép EN nếu cần
     void sendForgotPasswordOTP(String email, String otp, Locale locale);
+
+    void sendMemberInvitation(String email, String teamName, String inviterName, String invitationLink);
+    void sendMemberInvitation(String email, String teamName, String inviterName, String invitationLink, Locale locale);
 }
