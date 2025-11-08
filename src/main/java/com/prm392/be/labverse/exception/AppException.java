@@ -60,6 +60,12 @@ public class AppException extends RuntimeException{
         this.httpStatus = error.getHttpStatus();
     }
 
+    public AppException(TeamErrorCode error) {
+        super(error.getMessage());
+        this.code = error.getCode();
+        this.message = error.getMessage();
+        this.httpStatus = error.getHttpStatus();
+    }
 
 
 }

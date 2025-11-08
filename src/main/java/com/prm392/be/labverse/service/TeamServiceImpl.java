@@ -9,6 +9,9 @@ import com.prm392.be.labverse.entity.Membership;
 import com.prm392.be.labverse.entity.Team;
 import com.prm392.be.labverse.entity.TeamReadingList;
 import com.prm392.be.labverse.entity.User;
+import com.prm392.be.labverse.exception.AppException;
+import com.prm392.be.labverse.exception.TeamErrorCode;
+import com.prm392.be.labverse.exception.UserErrorCode;
 import com.prm392.be.labverse.repository.MembershipRepository;
 import com.prm392.be.labverse.repository.TeamReadingListRepository;
 import com.prm392.be.labverse.repository.TeamRepository;
@@ -43,7 +46,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public List<MemberResponse> getMembersByTeamId(String teamId) {
-        List<Membership> memberships = membershipRepository.findByTeam_Id(teamId);
+        List<Membership> memberships = membershipRepository.findByTeam_IdOrderByName(teamId);
 
         if (memberships.isEmpty()) {
             return Collections.emptyList();
@@ -69,7 +72,8 @@ public class TeamServiceImpl implements TeamService {
         String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
 
         if (currentUserId == null) {
-            throw new RuntimeException("No authenticated user found");
+            // đổi sang error code auth của bạn
+            throw new AppException(UserErrorCode.UN_AUTHENTICATED);
         }
 
         User createdByUser = new User();
@@ -83,6 +87,36 @@ public class TeamServiceImpl implements TeamService {
         teamRepository.save(team);
 
         return TeamResponse.builder()
+                .id(team.getId())
+                .name(team.getName())
+                .description(team.getDescription())
+                .build();
+    }
+
+
+    @Override
+    @Transactional
+    public TeamResponse updateTeam(String teamId, TeamRequest request) {
+        String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
+
+        if (currentUserId == null) {
+            throw new AppException(UserErrorCode.UN_AUTHENTICATED);
+        }
+
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new AppException(TeamErrorCode.TEAM_NOT_FOUND));
+
+        if (!team.getCreatedBy().getId().equals(currentUserId)) {
+            throw new AppException(TeamErrorCode.TEAM_NO_PERMISSION);
+        }
+
+        team.setName(request.getName());
+        team.setDescription(request.getDescription());
+
+        teamRepository.save(team);
+
+        return TeamResponse.builder()
+                .id(team.getId())
                 .name(team.getName())
                 .description(team.getDescription())
                 .build();
@@ -94,15 +128,16 @@ public class TeamServiceImpl implements TeamService {
         String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
 
         if (currentUserId == null) {
-            throw new RuntimeException("No authenticated user found");
+            throw new AppException(UserErrorCode.UN_AUTHENTICATED);
         }
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found with id: " + teamId));
+                .orElseThrow(() -> new AppException(TeamErrorCode.TEAM_NOT_FOUND));
 
         if (!team.getCreatedBy().getId().equals(currentUserId)) {
-            throw new RuntimeException("You don't have permission to delete this team");
+            throw new AppException(TeamErrorCode.TEAM_NO_PERMISSION);
         }
+
         membershipRepository.deleteByTeam_Id(teamId);
         teamRepository.delete(team);
     }
@@ -112,22 +147,27 @@ public class TeamServiceImpl implements TeamService {
     public void removeTeamMember(String teamId, String memberId) {
         String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
         if (currentUserId == null) {
-            throw new RuntimeException("No authenticated user found");
+            throw new AppException(UserErrorCode.UN_AUTHENTICATED);
         }
+
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found with id: " + teamId));
+                .orElseThrow(() -> new AppException(TeamErrorCode.TEAM_NOT_FOUND));
+
         if (!team.getCreatedBy().getId().equals(currentUserId)) {
-            throw new RuntimeException("You don't have permission to remove members from this team");
+            throw new AppException(TeamErrorCode.TEAM_NO_PERMISSION);
         }
+
         if (memberId.equals(currentUserId)) {
-            throw new RuntimeException("Cannot remove this member");
+            throw new AppException(TeamErrorCode.TEAM_CANNOT_REMOVE_SELF);
         }
+
         Membership membership = membershipRepository.findByTeam_IdAndUserId_Id(teamId, memberId)
-                .orElseThrow(() -> new RuntimeException("Member not found in this team"));
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new AppException(TeamErrorCode.MEMBER_NOT_FOUND));
 
         membershipRepository.delete(membership);
     }
-
 
     @Override
     public List<TeamReadingListResponse> getTeamReadingListsByTeamId(String teamId) {
@@ -144,14 +184,14 @@ public class TeamServiceImpl implements TeamService {
         verifyTeamExists(teamId);
 
         TeamReadingList teamReadingList = teamReadingListRepository.findById(teamReadingListId)
-                .orElseThrow(() -> new RuntimeException("Team reading list not found"));
+                .orElseThrow(() -> new AppException(TeamErrorCode.TEAM_READING_LIST_NOT_FOUND));
 
         if (!teamReadingList.getTeam().getId().equals(teamId)) {
-            throw new RuntimeException("Team reading list does not belong to this team");
+            throw new AppException(TeamErrorCode.TEAM_READING_LIST_NOT_IN_TEAM);
         }
 
         if (teamReadingList.isDeleteFlag()) {
-            throw new RuntimeException("Team reading list has been deleted");
+            throw new AppException(TeamErrorCode.TEAM_READING_LIST_DELETED);
         }
 
         return mapToTeamReadingListResponse(teamReadingList);
@@ -162,11 +202,11 @@ public class TeamServiceImpl implements TeamService {
     public TeamReadingListResponse createTeamReadingList(String teamId, TeamReadingListRequest request) {
         String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
         if (currentUserId == null) {
-            throw new RuntimeException("No authenticated user found");
+            throw new AppException(UserErrorCode.UN_AUTHENTICATED);
         }
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new AppException(TeamErrorCode.TEAM_NOT_FOUND));
 
         verifyTeamMembership(currentUserId, teamId);
 
@@ -185,20 +225,20 @@ public class TeamServiceImpl implements TeamService {
     public TeamReadingListResponse updateTeamReadingList(String teamId, String teamReadingListId, TeamReadingListRequest request) {
         String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
         if (currentUserId == null) {
-            throw new RuntimeException("No authenticated user found");
+            throw new AppException(UserErrorCode.UN_AUTHENTICATED);
         }
 
         verifyTeamMembership(currentUserId, teamId);
 
         TeamReadingList teamReadingList = teamReadingListRepository.findById(teamReadingListId)
-                .orElseThrow(() -> new RuntimeException("Team reading list not found"));
+                .orElseThrow(() -> new AppException(TeamErrorCode.TEAM_READING_LIST_NOT_FOUND));
 
         if (!teamReadingList.getTeam().getId().equals(teamId)) {
-            throw new RuntimeException("Team reading list does not belong to this team");
+            throw new AppException(TeamErrorCode.TEAM_READING_LIST_NOT_IN_TEAM);
         }
 
         if (teamReadingList.isDeleteFlag()) {
-            throw new RuntimeException("Cannot update deleted team reading list");
+            throw new AppException(TeamErrorCode.TEAM_READING_LIST_DELETED);
         }
 
         teamReadingList.setName(request.getName());
@@ -214,16 +254,16 @@ public class TeamServiceImpl implements TeamService {
     public void deleteTeamReadingList(String teamId, String teamReadingListId) {
         String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
         if (currentUserId == null) {
-            throw new RuntimeException("No authenticated user found");
+            throw new AppException(UserErrorCode.UN_AUTHENTICATED);
         }
 
         verifyTeamMembership(currentUserId, teamId);
 
         TeamReadingList teamReadingList = teamReadingListRepository.findById(teamReadingListId)
-                .orElseThrow(() -> new RuntimeException("Team reading list not found"));
+                .orElseThrow(() -> new AppException(TeamErrorCode.TEAM_READING_LIST_NOT_FOUND));
 
         if (!teamReadingList.getTeam().getId().equals(teamId)) {
-            throw new RuntimeException("Team reading list does not belong to this team");
+            throw new AppException(TeamErrorCode.TEAM_READING_LIST_NOT_IN_TEAM);
         }
 
         // Soft delete
@@ -235,19 +275,19 @@ public class TeamServiceImpl implements TeamService {
 
     private void verifyTeamExists(String teamId) {
         if (!teamRepository.existsById(teamId)) {
-            throw new RuntimeException("Team not found");
+            throw new AppException(TeamErrorCode.TEAM_NOT_FOUND);
         }
     }
 
     private void verifyTeamMembership(String userId, String teamId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new AppException(TeamErrorCode.TEAM_NOT_FOUND));
 
         boolean isOwner = team.getCreatedBy().getId().equals(userId);
         boolean isMember = membershipRepository.existsByTeam_IdAndUserId_Id(teamId, userId);
 
         if (!isOwner && !isMember) {
-            throw new RuntimeException("You are not a member of this team");
+            throw new AppException(TeamErrorCode.TEAM_NO_PERMISSION);
         }
     }
 

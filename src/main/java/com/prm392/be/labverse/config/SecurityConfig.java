@@ -52,6 +52,8 @@ public class SecurityConfig {
                                 .requestMatchers(ApiEndpoint.PUBLIC_API).permitAll()
 //                                .requestMatchers("/api/auth/test").hasAuthority(ERole.INTERN.toString())
                                 .requestMatchers("/api/team/**").hasAuthority(ERole.PI.toString())
+                                .requestMatchers("/api/invitations/pi/**").hasAuthority(ERole.PI.toString())
+                                .requestMatchers("/api/invitations/user/**").hasAuthority(ERole.INTERN.toString())
                                 .anyRequest().authenticated()
                 );
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
