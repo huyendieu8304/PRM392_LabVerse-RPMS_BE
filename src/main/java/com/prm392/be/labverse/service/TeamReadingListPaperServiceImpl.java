@@ -1,4 +1,4 @@
-package com.prm392.be.labverse.service.impl;
+package com.prm392.be.labverse.service;
 
 import com.prm392.be.labverse.constant.EPriority;
 import com.prm392.be.labverse.dto.team.TeamReadingListPaperResponse;
@@ -15,7 +15,6 @@ import com.prm392.be.labverse.repository.PaperRepository;
 import com.prm392.be.labverse.repository.TeamReadingListPaperRepository;
 import com.prm392.be.labverse.repository.TeamReadingListRepository;
 import com.prm392.be.labverse.repository.TeamRepository;
-import com.prm392.be.labverse.service.TeamReadingListPaperService;
 import com.prm392.be.labverse.util.CurrentUserInfoUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,6 +29,7 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
     private final PaperRepository paperRepository;
     private final TeamRepository teamRepository;
     private final MembershipRepository membershipRepository;
+
 
     private void verifyMembershipOrOwner(String teamId, String currentUserId) {
         Team team = teamRepository.findById(teamId)
@@ -119,8 +119,8 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
                         .readingListId(readingList.getId())
                         .paperId(link.getPaper().getId())
                         .priority(link.getPriority())
-                        .title(link.getPaper().getTitle())   // Thêm title
-                        .authorName(link.getPaper().getAuthorName())   // Thêm authorName
+                        .title(link.getPaper().getTitle())
+                        .authorName(link.getPaper().getAuthorName())
                         .build())
                 .collect(java.util.stream.Collectors.toList());
     }
