@@ -21,6 +21,7 @@ public class TeamReadingListPaper {
     @GeneratedValue(strategy = GenerationType.UUID)
     String id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "priority")
     EPriority priority;
 
