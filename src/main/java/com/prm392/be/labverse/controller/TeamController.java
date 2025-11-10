@@ -105,15 +105,13 @@ public class TeamController {
         return teamReadingListPaperService.listPapers(teamId, readingListId);
     }
 
-    @PostMapping("/{teamId}/reading-lists/{readingListId}/papers/{paperId}")
-    public ResponseEntity<TeamReadingListPaperResponse> addPaperToReadingList(
+    @DeleteMapping("/{teamId}/reading-lists/{readingListId}/papers/{paperId}")
+    public ResponseEntity<String> removePaperFromReadingList(
             @PathVariable String teamId,
             @PathVariable String readingListId,
-            @PathVariable String paperId,
-            @RequestBody(required = false) SetPaperPriorityRequest request) {
-        TeamReadingListPaperResponse response = teamReadingListPaperService.addPaper(teamId, readingListId, paperId,
-                request != null ? request.getPriority() : null);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            @PathVariable String paperId) {
+        teamReadingListPaperService.removePaper(teamId, readingListId, paperId);
+        return ResponseEntity.ok("Paper removed from reading list successfully");
     }
 
     // ==================== READING LIST PAPER PRIORITY ====================

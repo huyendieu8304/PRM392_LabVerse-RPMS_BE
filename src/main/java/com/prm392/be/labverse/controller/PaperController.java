@@ -4,11 +4,15 @@ import com.prm392.be.labverse.dto.S3SignedUrlResponse;
 import com.prm392.be.labverse.dto.paper.AddPaperRequest;
 import com.prm392.be.labverse.dto.paper.AddPaperResponse;
 import com.prm392.be.labverse.dto.paper.PaperInfoResponse;
+import com.prm392.be.labverse.dto.team.SetPaperPriorityRequest;
+import com.prm392.be.labverse.dto.team.TeamReadingListPaperResponse;
 import com.prm392.be.labverse.service.PaperService;
+import com.prm392.be.labverse.service.TeamReadingListPaperService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class PaperController {
 
     private final PaperService paperService;
+    private final TeamReadingListPaperService teamReadingListPaperService;
 
     @GetMapping("/uploadUrl")
     public ResponseEntity<S3SignedUrlResponse> getUploadUrl(@RequestParam("key") String key){
@@ -42,4 +47,16 @@ public class PaperController {
     public ResponseEntity<PaperInfoResponse> getPaperInfo(@PathVariable String id){
         return ResponseEntity.ok(paperService.getPaperInfo(id));
     }
+
+    @PostMapping("/{teamId}/reading-lists/{teamReadingListId}/papers/{paperId}")
+    public ResponseEntity<TeamReadingListPaperResponse> addPaperToReadingList(
+            @PathVariable String teamId,
+            @PathVariable String teamReadingListId,
+            @PathVariable String paperId,
+            @RequestBody(required = false) SetPaperPriorityRequest request) {
+        TeamReadingListPaperResponse response = teamReadingListPaperService.addPaper(teamId, teamReadingListId, paperId,
+                request != null ? request.getPriority() : null);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
 }

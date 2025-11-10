@@ -165,4 +165,19 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
                 .priority(link.getPriority())
                 .build();
     }
+
+    @Override
+    @Transactional
+    public void removePaper(String teamId, String readingListId, String paperId) {
+        String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new AppException(UserErrorCode.UN_AUTHENTICATED);
+        }
+        verifyMembershipOrOwner(teamId, currentUserId);
+        TeamReadingList readingList = verifyReadingList(teamId, readingListId);
+
+        teamReadingListPaperRepository
+                .findByTeamReadingList_IdAndPaper_Id(readingList.getId(), paperId)
+                .ifPresent(teamReadingListPaperRepository::delete);
+    }
 }
