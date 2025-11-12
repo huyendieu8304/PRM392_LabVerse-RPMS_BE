@@ -20,6 +20,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperService {
@@ -30,12 +33,15 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
     private final TeamRepository teamRepository;
     private final MembershipRepository membershipRepository;
 
+    // --- Helper methods ---
 
     private void verifyMembershipOrOwner(String teamId, String currentUserId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new AppException(TeamErrorCode.TEAM_NOT_FOUND));
+
         boolean isOwner = team.getCreatedBy() != null && team.getCreatedBy().getId().equals(currentUserId);
         boolean isMember = membershipRepository.existsByTeam_IdAndUserId_Id(teamId, currentUserId);
+
         if (!isOwner && !isMember) {
             throw new AppException(TeamErrorCode.TEAM_NO_PERMISSION);
         }
@@ -44,6 +50,7 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
     private TeamReadingList verifyReadingList(String teamId, String readingListId) {
         TeamReadingList readingList = teamReadingListRepository.findById(readingListId)
                 .orElseThrow(() -> new AppException(TeamErrorCode.TEAM_READING_LIST_NOT_FOUND));
+
         if (!readingList.getTeam().getId().equals(teamId)) {
             throw new AppException(TeamErrorCode.TEAM_READING_LIST_NOT_IN_TEAM);
         }
@@ -53,6 +60,8 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
         return readingList;
     }
 
+    // --- Service methods ---
+
     @Override
     @Transactional
     public TeamReadingListPaperResponse setPaperPriority(String teamId, String readingListId, String paperId, EPriority priority) {
@@ -61,36 +70,16 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
             throw new AppException(UserErrorCode.UN_AUTHENTICATED);
         }
 
-        // Verify team exists and current user is owner or member
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new AppException(TeamErrorCode.TEAM_NOT_FOUND));
-        boolean isOwner = team.getCreatedBy() != null && team.getCreatedBy().getId().equals(currentUserId);
-        boolean isMember = membershipRepository.existsByTeam_IdAndUserId_Id(teamId, currentUserId);
-        if (!isOwner && !isMember) {
-            throw new AppException(TeamErrorCode.TEAM_NO_PERMISSION);
-        }
+        verifyMembershipOrOwner(teamId, currentUserId);
+        TeamReadingList readingList = verifyReadingList(teamId, readingListId);
 
-        // Verify reading list
-        TeamReadingList readingList = teamReadingListRepository.findById(readingListId)
-                .orElseThrow(() -> new AppException(TeamErrorCode.TEAM_READING_LIST_NOT_FOUND));
-        if (!readingList.getTeam().getId().equals(teamId)) {
-            throw new AppException(TeamErrorCode.TEAM_READING_LIST_NOT_IN_TEAM);
-        }
-        if (readingList.isDeleteFlag()) {
-            throw new AppException(TeamErrorCode.TEAM_READING_LIST_DELETED);
-        }
-
-        // Verify paper
         Paper paper = paperRepository.findByIdAndDeleteFlagFalse(paperId)
                 .orElseThrow(() -> new AppException(PaperErrorCode.PAPER_NOT_FOUND));
 
-        // Upsert TeamReadingListPaper
         TeamReadingListPaper link = teamReadingListPaperRepository
-                .findByTeamReadingList_IdAndPaper_Id(readingListId, paperId)
-                .orElseGet(() -> TeamReadingListPaper.builder()
-                        .teamReadingList(readingList)
-                        .paper(paper)
-                        .build());
+                .findByTeamReadingList_IdAndPaper_IdAndDeleteFlagFalse(readingListId, paperId)
+                .orElseThrow(() -> new AppException(PaperErrorCode.PAPER_NOT_FOUND));
+
         link.setPriority(priority);
         teamReadingListPaperRepository.save(link);
 
@@ -99,20 +88,24 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
                 .readingListId(readingList.getId())
                 .paperId(paper.getId())
                 .priority(link.getPriority())
+                .title(paper.getTitle())
+                .authorName(paper.getAuthorName())
                 .build();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public java.util.List<TeamReadingListPaperResponse> listPapers(String teamId, String readingListId) {
+    public List<TeamReadingListPaperResponse> listPapers(String teamId, String readingListId) {
         String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
         if (currentUserId == null) {
             throw new AppException(UserErrorCode.UN_AUTHENTICATED);
         }
+
         verifyMembershipOrOwner(teamId, currentUserId);
         TeamReadingList readingList = verifyReadingList(teamId, readingListId);
 
-        return teamReadingListPaperRepository.findAllByTeamReadingList_Id(readingList.getId())
+        return teamReadingListPaperRepository
+                .findAllByTeamReadingList_IdAndDeleteFlagFalse(readingList.getId())
                 .stream()
                 .map(link -> TeamReadingListPaperResponse.builder()
                         .id(link.getId())
@@ -122,10 +115,8 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
                         .title(link.getPaper().getTitle())
                         .authorName(link.getPaper().getAuthorName())
                         .build())
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     }
-
-
 
     @Override
     @Transactional
@@ -135,37 +126,28 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
             throw new AppException(UserErrorCode.UN_AUTHENTICATED);
         }
 
-        // User phải là owner hoặc member của team
         verifyMembershipOrOwner(teamId, currentUserId);
-
-        // Check reading list thuộc team và chưa bị xóa
         TeamReadingList readingList = verifyReadingList(teamId, readingListId);
 
-        // Tìm paper
         Paper paper = paperRepository.findByIdAndDeleteFlagFalse(paperId)
                 .orElseThrow(() -> new AppException(PaperErrorCode.PAPER_NOT_FOUND));
 
-        // CHẶN: chỉ cho phép add paper mà current user là owner
         if (paper.getUser() == null || !paper.getUser().getId().equals(currentUserId)) {
             throw new AppException(PaperErrorCode.NOT_PAPER_OWNER);
         }
 
-        // CHẶN: paper đã tồn tại trong reading list rồi thì không cho add nữa
         if (teamReadingListPaperRepository
-                .existsByTeamReadingList_IdAndPaper_Id(readingListId, paperId)) {
-            // dùng error code riêng nếu bạn có, ví dụ:
-            // throw new AppException(TeamErrorCode.TEAM_READING_LIST_PAPER_ALREADY_EXISTS);
+                .existsByTeamReadingList_IdAndPaper_IdAndDeleteFlagFalse(readingListId, paperId)) {
             throw new AppException(PaperErrorCode.PAPER_ALREADY_IN_READING_LIST);
         }
 
-        // Nếu priority null thì default MEDIUM
         EPriority effectivePriority = (priority != null) ? priority : EPriority.MEDIUM;
 
-        // Tạo mới link
         TeamReadingListPaper link = TeamReadingListPaper.builder()
                 .teamReadingList(readingList)
                 .paper(paper)
                 .priority(effectivePriority)
+                .deleteFlag(false)
                 .build();
 
         teamReadingListPaperRepository.save(link);
@@ -180,8 +162,6 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
                 .build();
     }
 
-
-
     @Override
     @Transactional
     public void removePaper(String teamId, String readingListId, String paperId) {
@@ -189,11 +169,15 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
         if (currentUserId == null) {
             throw new AppException(UserErrorCode.UN_AUTHENTICATED);
         }
+
         verifyMembershipOrOwner(teamId, currentUserId);
         TeamReadingList readingList = verifyReadingList(teamId, readingListId);
 
         teamReadingListPaperRepository
-                .findByTeamReadingList_IdAndPaper_Id(readingList.getId(), paperId)
-                .ifPresent(teamReadingListPaperRepository::delete);
+                .findByTeamReadingList_IdAndPaper_IdAndDeleteFlagFalse(readingList.getId(), paperId)
+                .ifPresent(link -> {
+                    link.setDeleteFlag(true);
+                    teamReadingListPaperRepository.save(link);
+                });
     }
 }

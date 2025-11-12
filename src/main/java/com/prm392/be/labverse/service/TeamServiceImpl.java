@@ -111,7 +111,6 @@ public class TeamServiceImpl implements TeamService {
         String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
 
         if (currentUserId == null) {
-            // đổi sang error code auth của bạn
             throw new AppException(UserErrorCode.UN_AUTHENTICATED);
         }
 
@@ -177,8 +176,8 @@ public class TeamServiceImpl implements TeamService {
             throw new AppException(TeamErrorCode.TEAM_NO_PERMISSION);
         }
 
-        membershipRepository.deleteByTeam_Id(teamId);
-        teamRepository.delete(team);
+        team.setDeleteFlag(true);
+        teamRepository.save(team);
     }
 
     @Override
@@ -200,13 +199,16 @@ public class TeamServiceImpl implements TeamService {
             throw new AppException(TeamErrorCode.TEAM_CANNOT_REMOVE_SELF);
         }
 
-        Membership membership = membershipRepository.findByTeam_IdAndUserId_Id(teamId, memberId)
+        Membership membership = membershipRepository
+                .findByTeam_IdAndUserId_IdAndDeleteFlagFalse(teamId, memberId)
                 .stream()
                 .findFirst()
                 .orElseThrow(() -> new AppException(TeamErrorCode.MEMBER_NOT_FOUND));
 
-        membershipRepository.delete(membership);
+        membership.setDeleteFlag(true);
+        membershipRepository.save(membership);
     }
+
 
     @Override
     public List<TeamReadingListResponse> getTeamReadingListsByTeamId(String teamId) {
@@ -305,7 +307,6 @@ public class TeamServiceImpl implements TeamService {
             throw new AppException(TeamErrorCode.TEAM_READING_LIST_NOT_IN_TEAM);
         }
 
-        // Soft delete
         teamReadingList.setDeleteFlag(true);
         teamReadingListRepository.save(teamReadingList);
     }
