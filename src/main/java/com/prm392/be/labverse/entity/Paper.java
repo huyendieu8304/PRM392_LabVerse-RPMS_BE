@@ -15,6 +15,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(indexes = {
+        @Index(name = "idx_paper_user", columnList = "user_id"),
+        @Index(name = "idx_paper_created_at", columnList = "createdAt")
+})
 public class Paper {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -35,9 +39,19 @@ public class Paper {
     @Column(nullable = false, columnDefinition = "int default 0")
     private int currentPage = 0;
 
+    @Column(length = 512)
     private String authorName;
+
+    @Column(length = 512)
     private String title;
+
+    @Column(length = 128)
+    private String journalName;
+
+    @Column(length = 16)
     private String publicationYear;
+
+    @Column(length = 128)
     private String doi;
     //todo con thieu may cai lien quan toi trich dan
 }
