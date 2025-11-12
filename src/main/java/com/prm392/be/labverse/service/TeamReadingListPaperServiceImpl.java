@@ -134,27 +134,39 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
         if (currentUserId == null) {
             throw new AppException(UserErrorCode.UN_AUTHENTICATED);
         }
+
+        // User phải là owner hoặc member của team
         verifyMembershipOrOwner(teamId, currentUserId);
+
+        // Check reading list thuộc team và chưa bị xóa
         TeamReadingList readingList = verifyReadingList(teamId, readingListId);
+
+        // Tìm paper
         Paper paper = paperRepository.findByIdAndDeleteFlagFalse(paperId)
                 .orElseThrow(() -> new AppException(PaperErrorCode.PAPER_NOT_FOUND));
 
-        EPriority effectivePriority = priority != null ? priority : EPriority.MEDIUM;
-
-        TeamReadingListPaper link = teamReadingListPaperRepository
-                .findByTeamReadingList_IdAndPaper_Id(readingListId, paperId)
-                .orElse(null);
-
-        if (link == null) {
-            link = TeamReadingListPaper.builder()
-                    .teamReadingList(readingList)
-                    .paper(paper)
-                    .priority(effectivePriority)
-                    .build();
-        } else if (priority != null) {
-            // update priority only if explicitly provided
-            link.setPriority(effectivePriority);
+        // CHẶN: chỉ cho phép add paper mà current user là owner
+        if (paper.getUser() == null || !paper.getUser().getId().equals(currentUserId)) {
+            throw new AppException(PaperErrorCode.NOT_PAPER_OWNER);
         }
+
+        // CHẶN: paper đã tồn tại trong reading list rồi thì không cho add nữa
+        if (teamReadingListPaperRepository
+                .existsByTeamReadingList_IdAndPaper_Id(readingListId, paperId)) {
+            // dùng error code riêng nếu bạn có, ví dụ:
+            // throw new AppException(TeamErrorCode.TEAM_READING_LIST_PAPER_ALREADY_EXISTS);
+            throw new AppException(PaperErrorCode.PAPER_ALREADY_IN_READING_LIST);
+        }
+
+        // Nếu priority null thì default MEDIUM
+        EPriority effectivePriority = (priority != null) ? priority : EPriority.MEDIUM;
+
+        // Tạo mới link
+        TeamReadingListPaper link = TeamReadingListPaper.builder()
+                .teamReadingList(readingList)
+                .paper(paper)
+                .priority(effectivePriority)
+                .build();
 
         teamReadingListPaperRepository.save(link);
 
@@ -163,8 +175,12 @@ public class TeamReadingListPaperServiceImpl implements TeamReadingListPaperServ
                 .readingListId(readingList.getId())
                 .paperId(paper.getId())
                 .priority(link.getPriority())
+                .title(paper.getTitle())
+                .authorName(paper.getAuthorName())
                 .build();
     }
+
+
 
     @Override
     @Transactional

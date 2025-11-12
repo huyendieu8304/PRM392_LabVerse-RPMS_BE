@@ -5,9 +5,12 @@ import com.prm392.be.labverse.dto.paper.AddPaperRequest;
 import com.prm392.be.labverse.dto.paper.AddPaperResponse;
 import com.prm392.be.labverse.dto.paper.PaperInfoResponse;
 
+import java.util.List;
+
 public interface PaperService {
     S3SignedUrlResponse getUploadUrl(String key);
     AddPaperResponse addPaper(AddPaperRequest request);
     S3SignedUrlResponse getDownloadUrl(String s3Key);
     PaperInfoResponse getPaperInfo(String id);
+    List<PaperInfoResponse> getMyPapersOfCurrentUser();
 }

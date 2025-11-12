@@ -17,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/papers")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -47,16 +49,9 @@ public class PaperController {
     public ResponseEntity<PaperInfoResponse> getPaperInfo(@PathVariable String id){
         return ResponseEntity.ok(paperService.getPaperInfo(id));
     }
-
-    @PostMapping("/{teamId}/reading-lists/{teamReadingListId}/papers/{paperId}")
-    public ResponseEntity<TeamReadingListPaperResponse> addPaperToReadingList(
-            @PathVariable String teamId,
-            @PathVariable String teamReadingListId,
-            @PathVariable String paperId,
-            @RequestBody(required = false) SetPaperPriorityRequest request) {
-        TeamReadingListPaperResponse response = teamReadingListPaperService.addPaper(teamId, teamReadingListId, paperId,
-                request != null ? request.getPriority() : null);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @GetMapping("/my-papers")
+    public ResponseEntity<List<PaperInfoResponse>> getMyPapersOfCurrentUser() {
+        return ResponseEntity.ok(paperService.getMyPapersOfCurrentUser());
     }
 
 }
