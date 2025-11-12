@@ -1,10 +1,10 @@
 package com.prm392.be.labverse.dto.paper;
 
 import lombok.*;
-
+@Data
+@Builder
 @NoArgsConstructor
-@Setter
-@Getter
+@AllArgsConstructor
 public class PaperInfoResponse{
 
     private String id;

@@ -16,6 +16,7 @@ import java.util.Optional;
 @Repository
 public interface PaperRepository extends JpaRepository<Paper, String> {
     Optional<Paper> findByIdAndDeleteFlagFalse(String id);
+    List<Paper> findByUser_IdAndDeleteFlagFalse(String userId);
     // recently_added: dựa createdAt của Paper
     @Query("""
 select new com.prm392.be.labverse.dto.dashboard.PaperCardDTO(
@@ -90,4 +91,3 @@ order by f.createdAt desc
         """)
     List<PaperSummaryDTO> findSummariesByOwner(@org.springframework.data.repository.query.Param("userId") String userId);
 }
-

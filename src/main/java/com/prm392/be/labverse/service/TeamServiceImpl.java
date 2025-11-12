@@ -1,5 +1,6 @@
 package com.prm392.be.labverse.service;
 
+import com.prm392.be.labverse.constant.EStatus;
 import com.prm392.be.labverse.dto.team.MemberResponse;
 import com.prm392.be.labverse.dto.team.TeamReadingListRequest;
 import com.prm392.be.labverse.dto.team.TeamReadingListResponse;
@@ -20,8 +21,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +31,45 @@ public class TeamServiceImpl implements TeamService {
     private final TeamRepository teamRepository;
     private final MembershipRepository membershipRepository;
     private final TeamReadingListRepository teamReadingListRepository;
+
+    public List<TeamResponse> getMyTeamsForCurrentUser() {
+        String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new AppException(UserErrorCode.UN_AUTHENTICATED);
+        }
+
+        // Team do mình tạo (nếu là PI)
+        List<Team> ownedTeams = teamRepository.findByCreatedBy_Id(currentUserId);
+
+        // Team mình là member (INTERN hoặc PI join team người khác)
+        List<Membership> memberships =
+                membershipRepository.findByUserId_IdAndStatus(currentUserId, EStatus.APPROVED);
+
+        Set<String> teamIds = new HashSet<>();
+        List<TeamResponse> result = new ArrayList<>();
+
+        for (Team team : ownedTeams) {
+            if (teamIds.add(team.getId())) {
+                result.add(mapTeamToResponse(team));
+            }
+        }
+        for (Membership m : memberships) {
+            Team team = m.getTeam();
+            if (team != null && teamIds.add(team.getId())) {
+                result.add(mapTeamToResponse(team));
+            }
+        }
+        return result;
+    }
+
+    private TeamResponse mapTeamToResponse(Team team) {
+        return TeamResponse.builder()
+                .id(team.getId())
+                .name(team.getName())
+                .description(team.getDescription())
+                .build();
+    }
+
 
     @Override
     public List<TeamResponse> listAllTeams(String userId) {

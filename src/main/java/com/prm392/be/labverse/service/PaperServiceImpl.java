@@ -158,5 +158,26 @@ public class PaperServiceImpl implements PaperService {
     }
 
 
+    @Override
+    public List<PaperInfoResponse> getMyPapersOfCurrentUser() {
+        String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new AppException(UserErrorCode.UN_AUTHENTICATED);
+        }
 
+        return paperRepository
+                .findByUser_IdAndDeleteFlagFalse(currentUserId)
+                .stream()
+                .map(paper -> PaperInfoResponse.builder()
+                        .id(paper.getId())
+                        .s3Key(paper.getS3Key())
+                        .totalPage(paper.getTotalPage())
+                        .currentPage(paper.getCurrentPage())
+                        .authorName(paper.getAuthorName())
+                        .title(paper.getTitle())
+                        .publicationYear(paper.getPublicationYear())
+                        .doi(paper.getDoi())
+                        .build())
+                .toList();
+    }
 }

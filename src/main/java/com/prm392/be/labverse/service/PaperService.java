@@ -22,4 +22,5 @@ public interface PaperService {
     void addFavorite(String userId, String paperId);
     void removeFavorite(String userId, String paperId);
     List<PaperSummaryDTO> listAllSummariesForUser(String userId);
+    List<PaperInfoResponse> getMyPapersOfCurrentUser();
 }

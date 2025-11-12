@@ -5,6 +5,7 @@ import com.prm392.be.labverse.dto.team.*;
 import java.util.List;
 
 public interface TeamService {
+    List<TeamResponse> getMyTeamsForCurrentUser();
     List<TeamResponse> listAllTeams(String id);
     List<MemberResponse> getMembersByTeamId(String teamId);
     TeamResponse createTeam(TeamRequest request);

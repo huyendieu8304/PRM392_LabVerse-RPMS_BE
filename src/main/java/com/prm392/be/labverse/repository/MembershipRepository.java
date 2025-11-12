@@ -22,4 +22,5 @@ public interface MembershipRepository extends JpaRepository<Membership, String> 
     @Query("SELECT m FROM Membership m WHERE m.team.id = :teamId " +
             "ORDER BY m.userId.fullName ASC")
     List<Membership> findByTeam_IdOrderByName(String teamId);
+
 }

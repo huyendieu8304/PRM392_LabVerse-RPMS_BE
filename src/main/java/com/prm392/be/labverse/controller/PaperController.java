@@ -6,14 +6,18 @@ import com.prm392.be.labverse.dto.dashboard.UpdateProgressReq;
 import com.prm392.be.labverse.dto.paper.AddPaperRequest;
 import com.prm392.be.labverse.dto.paper.AddPaperResponse;
 import com.prm392.be.labverse.dto.paper.PaperInfoResponse;
+import com.prm392.be.labverse.dto.team.SetPaperPriorityRequest;
+import com.prm392.be.labverse.dto.team.TeamReadingListPaperResponse;
 import com.prm392.be.labverse.dto.paper.PaperSummaryDTO;
 import com.prm392.be.labverse.security.CurrentUserInfo;
 import com.prm392.be.labverse.security.UserDetailsImpl;
 import com.prm392.be.labverse.service.PaperService;
+import com.prm392.be.labverse.service.TeamReadingListPaperService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +39,7 @@ import java.util.List;
 public class PaperController {
 
     private final PaperService paperService;
+    private final TeamReadingListPaperService teamReadingListPaperService;
 
     @GetMapping("/uploadUrl")
     public ResponseEntity<S3SignedUrlResponse> getUploadUrl(@RequestParam("key") String key){
@@ -115,6 +120,9 @@ public class PaperController {
         return ResponseEntity.ok(paperService.listAllSummariesForUser(userId));
     }
 
-
+    @GetMapping("/my-papers")
+    public ResponseEntity<List<PaperInfoResponse>> getMyPapersOfCurrentUser() {
+        return ResponseEntity.ok(paperService.getMyPapersOfCurrentUser());
+    }
 
 }
