@@ -31,6 +31,8 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 
+import java.util.Optional;
+
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserServiceImpl implements UserService {
@@ -61,19 +63,32 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserSimpleResponse createUser(RegisterAccountRequest request) {
-        //kiem tra emial da duoc dung chuwa
-        if ( userRepository.findByEmail(request.getEmail().trim()).isPresent()) {
-            throw new AppException(UserErrorCode.EMAIL_USED);
-        }
-
-        log.info("Create new account: {}", request);
 
         String email = request.getEmail().trim();
-        User user = User.builder()
-                .email(email)
-                .password(passwordEncoder.encode(request.getPassword()))
-                .build();
-        userRepository.save(user);
+
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+
+        User user;
+
+        if (optionalUser.isEmpty()){
+            //chua co tai khoan, tao moi
+            log.info("Create new account: {}", email);
+            user = User.builder()
+                    .email(email)
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .build();
+            userRepository.save(user);
+        } else {
+            //tk với email đã tồn taij
+            log.info("Account existed no create or sent otp");
+            user = optionalUser.get();
+            if (Boolean.FALSE.equals(user.getDeleteFlag())) {
+                //email da duoc su dung
+                throw new AppException(UserErrorCode.EMAIL_USED);
+            }
+        }
+        //tk inactive, gửi lại mail cho hoj luon
+
         //gửi mail verify account
         String otp = otpUtil.generateVerifyAccOtp(email);
 

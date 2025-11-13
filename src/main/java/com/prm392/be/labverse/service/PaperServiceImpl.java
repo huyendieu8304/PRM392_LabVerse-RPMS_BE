@@ -1,5 +1,6 @@
 package com.prm392.be.labverse.service;
 
+import com.prm392.be.labverse.constant.ERole;
 import com.prm392.be.labverse.dto.S3SignedUrlResponse;
 import com.prm392.be.labverse.dto.dashboard.PaperCardDTO;
 import com.prm392.be.labverse.dto.paper.AddPaperRequest;
@@ -11,6 +12,7 @@ import com.prm392.be.labverse.entity.Paper;
 import com.prm392.be.labverse.entity.ReadingStatus;
 import com.prm392.be.labverse.entity.User;
 import com.prm392.be.labverse.exception.AppException;
+import com.prm392.be.labverse.exception.AuthErrorCode;
 import com.prm392.be.labverse.exception.PaperErrorCode;
 import com.prm392.be.labverse.exception.UserErrorCode;
 import com.prm392.be.labverse.mapper.PaperMapper;
@@ -51,6 +53,10 @@ public class PaperServiceImpl implements PaperService {
 //        User user = userRepository.getReferenceById(CurrentUserInfoUtil.getCurrentUserId());
         User user = userRepository.findByIdAndDeleteFlagFalse(CurrentUserInfoUtil.getCurrentUserId())
                 .orElseThrow(() -> new AppException(UserErrorCode.ACCOUNT_NOT_FOUND));
+
+        if (user.getRole().getName().toString().equals(ERole.INTERN.name())) {
+            throw new AppException(AuthErrorCode.UNAUTHORIZED);
+        }
 
         //tao object paper
         Paper paper = Paper.builder()
