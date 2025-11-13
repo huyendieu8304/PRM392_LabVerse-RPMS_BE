@@ -1,7 +1,9 @@
 package com.prm392.be.labverse.repository;
 
+import com.prm392.be.labverse.constant.EStatus;
 import com.prm392.be.labverse.entity.Membership;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,5 +15,13 @@ public interface MembershipRepository extends JpaRepository<Membership, String> 
     List<Membership> findByUserId_Id(String userId);
     boolean existsByTeam_IdAndUserId_Id(String teamId, String userId);
     void deleteByTeam_Id(String teamId);
-    Optional<Membership> findByTeam_IdAndUserId_Id(String teamId, String userId);
+    List<Membership> findByUserId_IdAndStatus(String currentUserId, EStatus status);
+    Optional<Membership> findByTeam_IdAndUserId_IdAndStatus(String teamId, String userId, EStatus status);
+    List<Membership> findByTeam_IdAndStatus(String teamId, EStatus status);
+    List<Membership> findByTeam_IdAndUserId_Id(String teamId, String userId);
+    @Query("SELECT m FROM Membership m WHERE m.team.id = :teamId AND m.deleteFlag = false ORDER BY m.userId.fullName ASC")
+    List<Membership> findByTeam_IdOrderByName(String teamId);
+    List<Membership> findByTeam_IdAndUserId_IdAndDeleteFlagFalse(String teamId, String memberId);
+
+
 }

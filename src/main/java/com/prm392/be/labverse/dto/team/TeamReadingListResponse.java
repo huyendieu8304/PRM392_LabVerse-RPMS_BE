@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TeamReadingListResponse {
+    private String id;
     private String teamId;
     private String name;
     private String description;

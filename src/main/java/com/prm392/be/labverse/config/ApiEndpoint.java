@@ -13,9 +13,17 @@ public class ApiEndpoint {
             "/swagger-config",
             "/swagger-resources/**",
             "/api/accounts/register",
+            "/api/accounts/resent-otp-verify-account",
+            "/api/accounts/verify-account",
+            "/api/accounts/register",
+            "/api/accounts/select-role",
             "/api/auth/login",
             "/api/auth/google",
             "/api/auth/logout",
+            "/api/auth/forgot-pass",
+            "/api/auth/verify-forgot-password-otp",
+            "/api/auth/reset-password",
+            "/api/auth/resent-forgot-password-otp",
 
     };
 

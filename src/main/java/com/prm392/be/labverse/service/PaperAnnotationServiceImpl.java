@@ -46,11 +46,16 @@ public class PaperAnnotationServiceImpl implements PaperAnnotationService {
 
     @Override
     public PaperAnnotationInfoResponse addOrUpdatePaperAnnotation(AddPaperAnnotationRequest request) {
-        if (!Objects.equals(CurrentUserInfoUtil.getCurrentUserId(), request.userId())){
+
+        String currentUserId = CurrentUserInfoUtil.getCurrentUserId();
+        if (!Objects.equals(currentUserId, request.userId())){
             throw new AppException(AuthErrorCode.UNAUTHORIZED_REQUEST);
         }
 
-        Optional<PaperAnnotation> optionalPaperAnnotation = annotationRepository.findById(request.id());
+//        Optional<PaperAnnotation> optionalPaperAnnotation = annotationRepository.findById(request.id());
+
+
+        Optional<PaperAnnotation> optionalPaperAnnotation = annotationRepository.findByUserIdAndPaperId(currentUserId, request.paperId());
 
         PaperAnnotation paperAnnotation = new PaperAnnotation();
 

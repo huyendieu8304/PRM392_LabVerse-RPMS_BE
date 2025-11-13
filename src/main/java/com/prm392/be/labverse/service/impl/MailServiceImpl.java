@@ -51,6 +51,26 @@ MailServiceImpl implements com.prm392.be.labverse.service.MailService {
         send(email, subject, html);
     }
 
+    @Override
+    public void sendMemberInvitation(String email, String teamName, String inviterName, String invitationLink) {
+        sendMemberInvitation(email, teamName, inviterName, invitationLink, defaultLocale());
+    }
+
+    @Override
+    public void sendMemberInvitation(String email, String teamName, String inviterName,
+                                     String invitationLink, Locale locale) {
+        String lang = normalize(locale);
+        String subject = lang.equals("en")
+                ? "You're invited to join " + teamName
+                : "Bạn được mời tham gia " + teamName;
+        String heading = lang.equals("en")
+                ? "Team Invitation"
+                : "Mời tham gia nhóm";
+        String html = buildInvitationHtml(heading, teamName, inviterName, invitationLink, lang);
+        send(email, subject, html);
+    }
+
+
     /* ---------------- helpers ---------------- */
 
     private void send(String to, String subject, String html) {
@@ -164,4 +184,87 @@ MailServiceImpl implements com.prm392.be.labverse.service.MailService {
                 footer
         );
     }
+
+
+
+    private String buildInvitationHtml(String heading, String teamName, String inviterName,
+                                       String invitationLink, String lang) {
+        String brand = props.getBrand().getName();
+        String logo = props.getBrand().getLogoUrl();
+        String color = props.getBrand().getPrimaryColor();
+
+        String intro = lang.equals("en")
+                ? "%s has invited you to join the team '%s'.".formatted(inviterName, teamName)
+                : "%s đã mời bạn tham gia nhóm '%s'.".formatted(inviterName, teamName);
+
+        // chỉ thông báo, không button, không link
+        String hint = lang.equals("en")
+                ? "This invitation will expire in 7 days. Please open the LabVerse app to view and manage your invitations."
+                : "Lời mời này sẽ hết hạn sau 7 ngày. Hãy mở ứng dụng LabVerse để xem và xử lý lời mời.";
+
+        String footer = lang.equals("en")
+                ? "This email was sent by %s.".formatted(brand)
+                : "Email này được gửi bởi %s.".formatted(brand);
+
+        return """
+        <html>
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>%s · %s</title>
+          </head>
+          <body style="margin:0;background:#f6f8fb">
+            <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:#f6f8fb;padding:24px 12px">
+              <tr>
+                <td align="center">
+                  <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;box-shadow:0 8px 28px rgba(0,0,0,0.06);overflow:hidden">
+                    <tr>
+                      <td style="padding:18px 22px;border-bottom:1px solid #eef2f7" align="left">
+                        <table width="100%%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td style="font-family:Inter,Arial,sans-serif;font-size:16px;font-weight:700;color:#0f172a">
+                              <span style="display:inline-flex;gap:10px;align-items:center">
+                                %s
+                                <span>%s</span>
+                              </span>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:26px 26px 16px 26px">
+                        <h1 style="margin:0 0 10px 0;font-family:Inter,Arial,sans-serif;font-size:22px;color:#0f172a">%s</h1>
+                        <p style="margin:0 0 14px 0;font-family:Inter,Arial,sans-serif;font-size:15px;color:#334155">%s</p>
+                        <p style="margin:0 0 0 0;font-family:Inter,Arial,sans-serif;font-size:14px;color:#6b7280">%s</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:16px 26px;border-top:1px solid #eef2f7">
+                        <p style="margin:0;font-family:Inter,Arial,sans-serif;font-size:12px;color:#94a3b8">%s</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
+        """.formatted(
+                heading,          // title
+                brand,            // title brand
+                (logo == null || logo.isBlank())
+                        ? "<span style='width:26px;height:26px;border-radius:8px;background:" + color + ";display:inline-block'></span>"
+                        : "<img src='" + logo + "' alt='" + brand + "' style='height:26px'>",
+                brand,            // header brand text
+                heading,          // h1
+                intro,            // intro paragraph
+                hint,             // hint paragraph
+                footer            // footer
+        );
+    }
+
+
 }
+
+

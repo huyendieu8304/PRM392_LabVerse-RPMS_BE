@@ -16,6 +16,4 @@ public class RegisterAccountRequest {
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,}$", message = "INVALID_PASSWORD")
     private String password;
 
-    @ValidRole(message = "INVALID_ROLE")
-    private String roleName;
 }

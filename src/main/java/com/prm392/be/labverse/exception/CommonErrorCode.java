@@ -10,6 +10,7 @@ public enum CommonErrorCode {
 
     SERVER_ERROR(5000, "Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR),
     UPLOAD_OBJECT_TO_S3_FAIL(5001, "There was error occurred during uploading files.", HttpStatus.SERVICE_UNAVAILABLE),
+    DUPLICATE(409, "Paper is already in this list", HttpStatus.CONFLICT),
     ;
 
     private final int code;

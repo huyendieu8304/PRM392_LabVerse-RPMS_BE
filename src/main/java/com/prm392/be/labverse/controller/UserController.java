@@ -1,8 +1,11 @@
 package com.prm392.be.labverse.controller;
 
+import com.prm392.be.labverse.dto.user.UpdateUserRequest;
+import com.prm392.be.labverse.dto.user.UserDto;
 import com.prm392.be.labverse.dto.user.UserSimpleResponse;
 import com.prm392.be.labverse.dto.user.RegisterAccountRequest;
 import com.prm392.be.labverse.service.UserService;
+import com.prm392.be.labverse.validation.ValidRole;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -27,4 +30,30 @@ public class UserController {
         return ResponseEntity.ok(userService.createUser(request));
     }
 
+    @GetMapping("/resent-otp-verify-account")
+    ResponseEntity<String> resentOtpVerifyAccount(@RequestParam String email){
+        userService.resentOtpVerifyAccount(email);
+        return ResponseEntity.ok("Resent OTP verify account successfully");
+    }
+
+    @PutMapping("/verify-account")
+    ResponseEntity<String> verifyAccount(@RequestParam String email, @RequestParam String otp){
+        userService.verifyAccount(email, otp);
+        return ResponseEntity.ok("Verify account successfully");
+    }
+
+    @PutMapping("/select-role")
+    ResponseEntity<UserSimpleResponse> selectRole(@RequestParam String userId, @RequestParam @ValidRole String roleName){
+        return ResponseEntity.ok(userService.selectRole(userId, roleName));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> getMe() {
+        return ResponseEntity.ok(userService.getMe());
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserDto> updateMe(@RequestBody UpdateUserRequest req) {
+        return ResponseEntity.ok(userService.updateMe(req));
+    }
 }

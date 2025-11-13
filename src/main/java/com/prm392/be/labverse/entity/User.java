@@ -42,8 +42,9 @@ public class User {
     @Column(name = "phone_number")
     String phoneNumber;
 
+    @Builder.Default
     @Column(name = "delete_flag")
-    boolean deleteFlag = false;
+    Boolean deleteFlag = true;
 
     @CreationTimestamp
     LocalDateTime createdAt;

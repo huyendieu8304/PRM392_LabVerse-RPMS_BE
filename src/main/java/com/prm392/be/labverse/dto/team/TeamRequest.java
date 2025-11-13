@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class TeamRequest {
+    private String id;
     private String name;
     private String description;
 }

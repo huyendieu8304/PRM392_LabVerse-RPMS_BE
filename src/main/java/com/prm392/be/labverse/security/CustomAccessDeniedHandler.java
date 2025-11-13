@@ -26,6 +26,11 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                        AccessDeniedException accessDeniedException)
             throws IOException, ServletException {
         log.info("Access denied, catch by AccessDeniedHandler");
+        log.warn("Access denied at [{} {}] - user: {} - message: {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : "anonymous",
+                accessDeniedException.getMessage());
         //User doesn't have permission to access
         AuthErrorCode errorCode = AuthErrorCode.UNAUTHORIZED;
         response.setStatus(errorCode.getHttpStatus().value()); //Set the http status code

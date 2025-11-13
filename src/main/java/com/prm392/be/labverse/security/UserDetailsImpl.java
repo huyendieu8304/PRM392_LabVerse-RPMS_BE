@@ -29,8 +29,13 @@ public class UserDetailsImpl implements UserDetails {
     private Collection<? extends GrantedAuthority> authorities;
 
     public static UserDetailsImpl build(User user) {
+
+        String roleName = (user.getRole() != null && user.getRole().getName() != null)
+                ? "ROLE_" + user.getRole().getName()
+                : "ROLE_USER"; // fallback role mặc định
+
         //create custom Authority for User
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().getName()));
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleName));
 
         return new UserDetailsImpl(
                 user,
@@ -67,7 +72,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return !user.isDeleteFlag();
+        return !user.getDeleteFlag();
     }
 
     public Role getRole(){
