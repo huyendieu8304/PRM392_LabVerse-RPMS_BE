@@ -1,6 +1,8 @@
 package com.prm392.be.labverse.service;
 
 import com.prm392.be.labverse.constant.ERole;
+import com.prm392.be.labverse.dto.user.UpdateUserRequest;
+import com.prm392.be.labverse.dto.user.UserDto;
 import com.prm392.be.labverse.dto.user.UserSimpleResponse;
 import com.prm392.be.labverse.dto.user.RegisterAccountRequest;
 import com.prm392.be.labverse.entity.User;
@@ -9,29 +11,53 @@ import com.prm392.be.labverse.exception.UserErrorCode;
 import com.prm392.be.labverse.exception.AppException;
 import com.prm392.be.labverse.repository.UserRepository;
 import com.prm392.be.labverse.repository.RoleRepository;
+import com.prm392.be.labverse.security.CurrentUserInfo;
+import com.prm392.be.labverse.security.CurrentUserProvider;
+import com.prm392.be.labverse.security.UserDetailsImpl;
 import com.prm392.be.labverse.util.OtpUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.Optional;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserServiceImpl implements UserService {
 
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
-    UserRepository userRepository;
-    RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
 
-    MailService mailService;
+    private final MailService mailService;
 
-    OtpUtil otpUtil;
-    PasswordEncoder passwordEncoder;
+    private final OtpUtil otpUtil;
+    private final PasswordEncoder passwordEncoder;
+    private final CurrentUserProvider currentUserProvider;
 
+
+    public UserServiceImpl(UserRepository userRepository,
+                           RoleRepository roleRepository,
+                           MailService mailService,
+                           OtpUtil otpUtil,
+                           PasswordEncoder passwordEncoder, CurrentUserProvider currentUserProvider) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+        this.mailService = mailService;
+        this.otpUtil = otpUtil;
+        this.passwordEncoder = passwordEncoder;
+        this.currentUserProvider = currentUserProvider;
+    }
 
     @Override
     public UserSimpleResponse createUser(RegisterAccountRequest request) {
@@ -85,7 +111,7 @@ public class UserServiceImpl implements UserService {
                 () -> new AppException(UserErrorCode.ACCOUNT_NOT_FOUND)
         );
         // Nếu tài khoản đã kích hoạt rồi
-        if (!user.isDeleteFlag()){
+        if (!user.getDeleteFlag()){
             throw new AppException(UserErrorCode.ACCOUNT_VERIFIED);
         }
         //tạo otp mới
@@ -101,7 +127,7 @@ public class UserServiceImpl implements UserService {
                 () -> new AppException(UserErrorCode.ACCOUNT_NOT_FOUND)
         );
         // Nếu tài khoản đã kích hoạt rồi
-        if (!user.isDeleteFlag()){
+        if (!user.getDeleteFlag()){
             throw new AppException(UserErrorCode.ACCOUNT_VERIFIED);
         }
 
@@ -133,5 +159,71 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         return new UserSimpleResponse(user.getEmail(), user.getRole().getName().name());
+    }
+
+    // ----------------- GET PROFILE -----------------
+    @Transactional(readOnly = true)
+    public UserDto getMe() {
+        CurrentUserInfo me = requireCurrent();
+        User user = findByIdOrEmail(me.getUserId(), me.getEmail())
+                .orElseThrow(() -> new RuntimeException("USER_NOT_FOUND"));
+        return toDto(user);
+    }
+
+    @Transactional
+    public UserDto updateMe(UpdateUserRequest req) {
+        CurrentUserInfo me = requireCurrent();
+        User u = findByIdOrEmail(me.getUserId(), me.getEmail())
+                .orElseThrow(() -> new RuntimeException("USER_NOT_FOUND"));
+
+        if (req.full_name != null)    u.setFullName(req.full_name.trim());
+        if (req.phone_number != null) u.setPhoneNumber(req.phone_number.trim());
+        if (req.address != null)      u.setAddress(req.address.trim());
+
+        // gender: tuỳ schema của bạn (Boolean/Enum/String)
+        if (req.gender != null)       u.setGender(req.gender);
+
+        u.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(u);
+        return toDto(u);
+    }
+
+    // ---------- helpers ----------
+    private CurrentUserInfo requireCurrent() {
+        CurrentUserInfo me = currentUserProvider.get();
+        if (me == null) throw new RuntimeException("UNAUTHENTICATED");
+        if ((me.getUserId() == null || me.getUserId().isBlank())
+                && (me.getEmail() == null || me.getEmail().isBlank())) {
+            throw new RuntimeException("PRINCIPAL_INVALID");
+        }
+        return me;
+    }
+
+    private Optional<User> findByIdOrEmail(String id, String email) {
+        if (id != null && !id.isBlank()) {
+            Optional<User> byId = userRepository.findById(id);
+            if (byId.isPresent()) return byId;
+        }
+        if (email != null && !email.isBlank()) {
+            return userRepository.findByEmail(email.trim());
+            // hoặc findByEmailIgnoreCase(email.trim())
+        }
+        return Optional.empty();
+    }
+
+
+    private static UserDto toDto(User u) {
+        UserDto d = new UserDto();
+        d.id = u.getId();
+        d.full_name = u.getFullName();
+        d.email = u.getEmail();
+        d.phone_number = u.getPhoneNumber();
+        d.gender = u.isGender();
+        d.address = u.getAddress();
+        d.role_id = u.getRole().getId();
+        d.delete_flag = u.getDeleteFlag();
+        d.created_at = u.getCreatedAt();
+        d.updated_at = u.getUpdatedAt();
+        return d;
     }
 }

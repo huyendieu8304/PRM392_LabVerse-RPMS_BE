@@ -92,7 +92,7 @@ public class TeamServiceImpl implements TeamService {
         }
 
         return memberships.stream()
-                .filter(m -> !m.getUserId().isDeleteFlag())
+                .filter(m -> !m.getUserId().getDeleteFlag())
                 .map(m -> {
                     User user = m.getUserId();
                     return MemberResponse.builder()

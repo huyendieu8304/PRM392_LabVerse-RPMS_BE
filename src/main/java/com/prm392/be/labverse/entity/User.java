@@ -44,7 +44,7 @@ public class User {
 
     @Builder.Default
     @Column(name = "delete_flag")
-    boolean deleteFlag = true;
+    Boolean deleteFlag = true;
 
     @CreationTimestamp
     LocalDateTime createdAt;

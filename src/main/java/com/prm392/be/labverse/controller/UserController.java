@@ -1,5 +1,7 @@
 package com.prm392.be.labverse.controller;
 
+import com.prm392.be.labverse.dto.user.UpdateUserRequest;
+import com.prm392.be.labverse.dto.user.UserDto;
 import com.prm392.be.labverse.dto.user.UserSimpleResponse;
 import com.prm392.be.labverse.dto.user.RegisterAccountRequest;
 import com.prm392.be.labverse.service.UserService;
@@ -43,5 +45,15 @@ public class UserController {
     @PutMapping("/select-role")
     ResponseEntity<UserSimpleResponse> selectRole(@RequestParam String userId, @RequestParam @ValidRole String roleName){
         return ResponseEntity.ok(userService.selectRole(userId, roleName));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> getMe() {
+        return ResponseEntity.ok(userService.getMe());
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<UserDto> updateMe(@RequestBody UpdateUserRequest req) {
+        return ResponseEntity.ok(userService.updateMe(req));
     }
 }
