@@ -11,5 +11,7 @@ import java.util.Optional;
 public interface TeamReadingListPaperRepository extends JpaRepository<TeamReadingListPaper, String> {
     List<TeamReadingListPaper> findAllByTeamReadingList_Id(String readingListId);
     Optional<TeamReadingListPaper> findByTeamReadingList_IdAndPaper_Id(String readingListId, String paperId);
-    boolean existsByTeamReadingList_IdAndPaper_Id(String readingListId, String paperId);
+    boolean existsByTeamReadingList_IdAndPaper_IdAndDeleteFlagFalse(String readingListId, String paperId);
+    Optional<TeamReadingListPaper> findByTeamReadingList_IdAndPaper_IdAndDeleteFlagFalse(String readingListId, String paperId);
+    List<TeamReadingListPaper> findAllByTeamReadingList_IdAndDeleteFlagFalse(String readingListId);
 }
