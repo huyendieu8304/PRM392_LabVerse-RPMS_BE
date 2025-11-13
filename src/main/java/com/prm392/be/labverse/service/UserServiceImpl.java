@@ -82,7 +82,7 @@ public class UserServiceImpl implements UserService {
             //tk với email đã tồn taij
             log.info("Account existed no create or sent otp");
             user = optionalUser.get();
-            if (!user.isDeleteFlag()) {
+            if (Boolean.FALSE.equals(user.getDeleteFlag())) {
                 //email da duoc su dung
                 throw new AppException(UserErrorCode.EMAIL_USED);
             }
