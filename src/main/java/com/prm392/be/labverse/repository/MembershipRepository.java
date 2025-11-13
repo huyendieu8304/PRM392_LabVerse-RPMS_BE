@@ -19,8 +19,7 @@ public interface MembershipRepository extends JpaRepository<Membership, String> 
     Optional<Membership> findByTeam_IdAndUserId_IdAndStatus(String teamId, String userId, EStatus status);
     List<Membership> findByTeam_IdAndStatus(String teamId, EStatus status);
     List<Membership> findByTeam_IdAndUserId_Id(String teamId, String userId);
-    @Query("SELECT m FROM Membership m WHERE m.team.id = :teamId " +
-            "ORDER BY m.userId.fullName ASC")
+    @Query("SELECT m FROM Membership m WHERE m.team.id = :teamId AND m.deleteFlag = false ORDER BY m.userId.fullName ASC")
     List<Membership> findByTeam_IdOrderByName(String teamId);
     List<Membership> findByTeam_IdAndUserId_IdAndDeleteFlagFalse(String teamId, String memberId);
 
