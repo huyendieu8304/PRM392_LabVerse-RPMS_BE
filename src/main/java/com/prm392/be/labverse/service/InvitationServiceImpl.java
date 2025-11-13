@@ -64,7 +64,7 @@ public class InvitationServiceImpl implements InvitationService {
         );
 
         for (Membership m : allMemberships) {
-            if (m.getStatus() == EStatus.APPROVED) {
+            if (m.getStatus() == EStatus.APPROVED && !m.isDeleteFlag()) {
                 throw new AppException(TeamErrorCode.MEMBER_ALREADY_IN_TEAM);
             }
         }
