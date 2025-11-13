@@ -16,6 +16,9 @@ public enum UserErrorCode {
     ACCOUNT_VERIFIED(2014, "The account has been already verified", HttpStatus.BAD_REQUEST),
     INVALID_VERIFIED_OTP(2015, "The OTP is invalid or has been already expired/used", HttpStatus.BAD_REQUEST),
     USER_ROLE_ALREADY_SET(2016, "User account has been already set, can not be updated", HttpStatus.BAD_REQUEST),
+    INVALID_REQUEST(2017, "Invalid request", HttpStatus.BAD_REQUEST),
+    FORBIDDEN(2018, "Acsset Denied", HttpStatus.FORBIDDEN),
+    RESOURCE_NOT_FOUND(2019, "Resource not found", HttpStatus.NOT_FOUND),
     ;
 
     private final int code;

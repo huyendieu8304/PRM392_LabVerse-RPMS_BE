@@ -72,7 +72,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return !user.isDeleteFlag();
+        return !user.getDeleteFlag();
     }
 
     public Role getRole(){

@@ -32,4 +32,14 @@ public class TeamReadingListPaper {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_reading_list_id", referencedColumnName = "id", nullable = false)
     TeamReadingList teamReadingList;
+
+    @Builder.Default
+    @Column(name = "delete_flag")
+    boolean deleteFlag = true;
+
+    @CreationTimestamp
+    LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    LocalDateTime updatedAt;
 }
